@@ -39,7 +39,7 @@ uploaded_image = st.file_uploader("Upload an image to analyze (optional)", type=
 
 def analyze_image(image_data):
     """Analyze the uploaded image using Azure Computer Vision API."""
-    analysis = computervision_client.analyze_image_in_stream(BytesIO(image_data), visual_features=[VisualFeatureTypes.Description])
+    analysis = computervision_client.analyze_image_in_stream(BytesIO(image_data), visual_features=[VisualFeatureTypes.DESCRIPTION])
     description = analysis.description.captions[0].text if analysis.description.captions else "No description available."
     return description
 
