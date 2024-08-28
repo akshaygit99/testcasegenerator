@@ -1,5 +1,5 @@
 ﻿openai==0.28
 streamlit
 Pillow
-azure-cognitiveservices-vision-computervision
+azure-cognitiveservices-vision-computervision==0.9.0
 msrest
