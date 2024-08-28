@@ -4,7 +4,7 @@ import os
 from PIL import Image
 import base64
 from io import BytesIO
-import google.generativeai as genai
+import genai
 import random
 import anthropic
 
