@@ -43,7 +43,7 @@ def generate_test_cases(requirement):
 
     return response.choices[0].message.content
 
- def add_image_to_messages():
+def add_image_to_messages():
                     if st.session_state.uploaded_img or ("camera_img" in st.session_state and st.session_state.camera_img):
                         img_type = st.session_state.uploaded_img.type if st.session_state.uploaded_img else "image/jpeg"
                         if img_type == "video/mp4":
