@@ -29,7 +29,7 @@ def generate_test_cases(requirement):
 
     response = openai.chat.completions.create(
 
-        model="gpt-4-turbo-vision",
+        model="gpt-4o",
 
         messages=[
 
