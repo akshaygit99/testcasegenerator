@@ -39,9 +39,15 @@ uploaded_image = st.file_uploader("Upload an image to analyze (optional)", type=
 
 def analyze_image(image_data):
     """Analyze the uploaded image using Azure Computer Vision API."""
-    analysis = computervision_client.analyze_image_in_stream(BytesIO(image_data), visual_features=[VisualFeatureTypes.DESCRIPTION])
-    description = analysis.description.captions[0].text if analysis.description.captions else "No description available."
+    analysis = computervision_client.analyze_image_in_stream(
+        BytesIO(image_data), 
+        visual_features=[VisualFeatureTypes.CATEGORIES, VisualFeatureTypes.TAGS]
+    )
+    tags = [tag.name for tag in analysis.tags] if analysis.tags else ["No tags available."]
+    categories = [category.name for category in analysis.categories] if analysis.categories else ["No categories available."]
+    description = f"Tags: {', '.join(tags)}; Categories: {', '.join(categories)}"
     return description
+
 
 def generate_test_cases(requirement, image_description=None):
     messages = [
