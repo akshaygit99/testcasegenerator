@@ -5,9 +5,7 @@ from PIL import Image
 import base64
 from io import BytesIO
 import random
-import anthropic
 
-dotenv.load_dotenv()
 
 
 anthropic_models = [
