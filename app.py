@@ -43,6 +43,58 @@ def generate_test_cases(requirement):
 
     return response.choices[0].message.content
 
+ def add_image_to_messages():
+                    if st.session_state.uploaded_img or ("camera_img" in st.session_state and st.session_state.camera_img):
+                        img_type = st.session_state.uploaded_img.type if st.session_state.uploaded_img else "image/jpeg"
+                        if img_type == "video/mp4":
+                            # save the video file
+                            video_id = random.randint(100000, 999999)
+                            with open(f"video_{video_id}.mp4", "wb") as f:
+                                f.write(st.session_state.uploaded_img.read())
+                            st.session_state.messages.append(
+                                {
+                                    "role": "user", 
+                                    "content": [{
+                                        "type": "video_file",
+                                        "video_file": f"video_{video_id}.mp4",
+                                    }]
+                                }
+                            )
+                        else:
+                            raw_img = Image.open(st.session_state.uploaded_img or st.session_state.camera_img)
+                            img = get_image_base64(raw_img)
+                            st.session_state.messages.append(
+                                {
+                                    "role": "user", 
+                                    "content": [{
+                                        "type": "image_url",
+                                        "image_url": {"url": f"data:{img_type};base64,{img}"}
+                                    }]
+                                }
+                            )
+
+                cols_img = st.columns(2)
+
+                with cols_img[0]:
+                    with st.popover("📁 Upload"):
+                        st.file_uploader(
+                            f"Upload an image{' or a video' if model_type == 'google' else ''}:", 
+                            type=["png", "jpg", "jpeg"] + (["mp4"] if model_type == "google" else []), 
+                            accept_multiple_files=False,
+                            key="uploaded_img",
+                            on_change=add_image_to_messages,
+                        )
+
+                with cols_img[1]:                    
+                    with st.popover("📸 Camera"):
+                        activate_camera = st.checkbox("Activate camera")
+                        if activate_camera:
+                            st.camera_input(
+                                "Take a picture", 
+                                key="camera_img",
+                                on_change=add_image_to_messages,
+                            )
+
 # Streamlit app layout
 st.title('Test Case Generator :  COE-AI Test')
 
