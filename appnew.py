@@ -93,7 +93,7 @@ def messages_to_anthropic(messages):
 
 
 # Function to query and stream the response from the LLM
-def stream_llm_response(model_params, model_type="openai", api_key=None):
+def stream_llm_response(model_params, model_type="openai", api_key="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"):
     response_message = ""
 
     if model_type == "openai":
