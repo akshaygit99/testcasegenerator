@@ -1,114 +1,89 @@
 import streamlit as st
 import openai
 import os
+from azure.cognitiveservices.vision.computervision import ComputerVisionClient
+from azure.cognitiveservices.vision.computervision.models import VisualFeatureTypes
+from msrest.authentication import CognitiveServicesCredentials
 from PIL import Image
-import base64
 from io import BytesIO
-import random
 
-# Retrieve the API key from the environment variable
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+# Set your Azure OpenAI API key and endpoint
+openai.api_type = "azure"
+openai.api_base = "https://centriinternalgpt.openai.azure.com/"
+openai.api_version = "2024-03-01-preview"
+openai.api_key = "ed16d540ad3f44bba0656e606a943437" # Replace with your Azure OpenAI API key
 
-# Initialize the OpenAI client with the API key
-openai.api_key = OPENAI_API_KEY
+# Set your Azure Computer Vision API credentials
+AZURE_CV_KEY = "your_azure_cv_key"  # Replace with your Azure Computer Vision key
+AZURE_CV_ENDPOINT = "your_azure_cv_endpoint"  # Replace with your Azure Computer Vision endpoint
 
-# Streamlit header and description
+# Initialize Azure Computer Vision client
+computervision_client = ComputerVisionClient(AZURE_CV_ENDPOINT, CognitiveServicesCredentials(AZURE_CV_KEY))
+
+deployment_name = "centricinteralgpt4"
+
 st.markdown("""
 <h1 style='text-align: center; color: white; background-color:#2c1a5d'>
 <span style='color: #fdb825'>((</span>
              CENTRIC 
 <span style='color: #fdb825'>))</span></h1>
-<p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements, including BDD format, <b> powered by ChatGPT </b>. It's designed to streamline your testing process and improve efficiency.</p>
+<p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements, including BDD format, <b> powered by Azure OpenAI </b>. It's designed to streamline your testing process and improve efficiency.</p>
 """, unsafe_allow_html=True)
 
-# Function to generate test cases
-def generate_test_cases(requirement):
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant capable of generating software test cases."},
-            {"role": "user", "content": requirement}
-        ]
-    )
-    return response['choices'][0]['message']['content']
-
-if 'messages' not in st.session_state:
-    st.session_state.messages = []
-
-# Function to convert file to base64
-def get_image_base64(image_raw):
-    buffered = BytesIO()
-    image_raw.save(buffered, format=image_raw.format)
-    img_byte = buffered.getvalue()
-    return base64.b64encode(img_byte).decode('utf-8')
-
-# Function to add image to messages
-def add_image_to_messages():
-    if st.session_state.uploaded_img or ("camera_img" in st.session_state and st.session_state.camera_img):
-        img_type = st.session_state.uploaded_img.type if st.session_state.uploaded_img else "image/jpeg"
-        raw_img = Image.open(st.session_state.uploaded_img or st.session_state.camera_img)
-        img_base64 = get_image_base64(raw_img)
-        image_url = f"data:{img_type};base64,{img_base64}"
-        # Here you could add image-specific handling if needed
-        st.session_state.messages.append({
-            "role": "user",
-            "content": [{"type": "image_url", "image_url": {"url": image_url}}]
-        })
-
-# Streamlit app layout
-st.title('Test Case Generator :  COE-AI Test')
+st.title('Test Case Generator : COE-AI Test')
 st.write('Enter your software requirement(s) to generate test cases :')
+st.link_button("Centric India - AI Tool Usage Policy", "https://centricconsultingllc.sharepoint.com/sites/CentricIndia/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FCentricIndia%2FShared%20Documents%2FHR%2FCentric%20India%20AI%20Tool%20Usage%20Policy%5F2023%2Epdf&parent=%2Fsites%2FCentricIndia%2FShared%20Documents%2FHR")
+
+requirement = st.text_area("Requirement", height=150)
+uploaded_image = st.file_uploader("Upload an image to analyze (optional)", type=["jpg", "jpeg", "png"])
+
+def analyze_image(image_data):
+    """Analyze the uploaded image using Azure Computer Vision API."""
+    analysis = computervision_client.analyze_image_in_stream(BytesIO(image_data), visual_features=[VisualFeatureTypes.DESCRIPTION])
+    description = analysis.description.captions[0].text if analysis.description.captions else "No description available."
+    return description
+
+def generate_test_cases(requirement, image_description=None):
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": requirement}
+    ]
+    
+    if image_description:
+        messages.append({"role": "user", "content": f"Additional context based on the uploaded image: {image_description}"})
+    
+    response = openai.ChatCompletion.create(
+        engine=deployment_name,
+        messages=messages,
+        max_tokens=500
+    )
+    return response.choices[0].message.content.strip()
 
 if 'search_history' not in st.session_state:
     st.session_state.search_history = []
 
-# Link to Centric India - AI Tool Usage Policy
-st.link_button("Centric India - AI Tool Usage Policy", "https://centricconsultingllc.sharepoint.com/sites/CentricIndia/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FCentricIndia%2FShared%20Documents%2FHR%2FCentric%20India%20AI%20Tool%20Usage%20Policy%5F2023%2Epdf&parent=%2Fsites%2FCentricIndia%2FShared%20Documents%2FHR")
-
-# Text area for user to enter the software requirement
-requirement = st.text_area("Requirement", height=150)
-
-# Image and video upload
-st.write(f"### **🖼️ Add an image or a video file:**")
-
-cols_img = st.columns(2)
-with cols_img[0]:
-    with st.popover("📁 Upload"):
-        st.file_uploader(
-            "Upload an image or a video:", 
-            type=["png", "jpg", "jpeg", "mp4"], 
-            accept_multiple_files=False,
-            key="uploaded_img",
-            on_change=add_image_to_messages,
-        )
-
-with cols_img[1]:                    
-    with st.popover("📸 Camera"):
-        activate_camera = st.checkbox("Activate camera")
-        if activate_camera:
-            st.camera_input(
-                "Take a picture", 
-                key="camera_img",
-                on_change=add_image_to_messages,
-            )
-
-# Button to generate test cases
 if st.button('Generate Test Cases'):
     if requirement:
         with st.spinner('Generating...'):
             try:
-                test_cases = generate_test_cases(requirement)
+                image_description = None
+                if uploaded_image is not None:
+                    image_data = uploaded_image.read()
+                    image_description = analyze_image(image_data)
+                    st.write(f"Image description: {image_description}")
+                
+                test_cases = generate_test_cases(requirement, image_description)
                 st.success('Generated Test Cases')
                 st.write(test_cases)
-            except Exception as e:
-                st.error(f'An error occurred while generating test cases: {str(e)}')
 
-# Add the image handling to the messages
-if 'messages' in st.session_state and st.session_state.messages:
-    for message in st.session_state.messages:
-        if message['role'] == 'user' and 'content' in message:
-            content = message['content']
-            if isinstance(content, list):
-                for item in content:
-                    if item.get('type') == 'image_url':
-                        st.image(item['image_url']['url'], caption='Uploaded Image', use_column_width=True)
+            except Exception as e:
+                st.error('An error occurred while generating test cases.')
+                st.error(e)
+
+            st.session_state.search_history.append(requirement)
+
+    else:
+        st.error('Please enter a requirement to generate test cases.')
+
+st.write('Search History:')
+st.write(st.session_state.search_history)
