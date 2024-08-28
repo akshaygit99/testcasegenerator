@@ -3,6 +3,8 @@ import streamlit as st
 import openai
 
 import os
+from PIL import Image
+
 
 # Retrieve the API key from the environment variable
 
