@@ -14,8 +14,8 @@ openai.api_version = "2024-03-01-preview"
 openai.api_key = "ed16d540ad3f44bba0656e606a943437" # Replace with your Azure OpenAI API key
 
 # Set your Azure Computer Vision API credentials
-AZURE_CV_KEY = "your_azure_cv_key"  # Replace with your Azure Computer Vision key
-AZURE_CV_ENDPOINT = "your_azure_cv_endpoint"  # Replace with your Azure Computer Vision endpoint
+AZURE_CV_KEY = "7f40f7e9afe94109ab10a49cd83e31b5"  # Replace with your Azure Computer Vision key
+AZURE_CV_ENDPOINT = "https://tcg-cv.cognitiveservices.azure.com/"  # Replace with your Azure Computer Vision endpoint
 
 # Initialize Azure Computer Vision client
 computervision_client = ComputerVisionClient(AZURE_CV_ENDPOINT, CognitiveServicesCredentials(AZURE_CV_KEY))
