@@ -37,24 +37,16 @@ st.link_button("Centric India - AI Tool Usage Policy", "https://centricconsultin
 requirement = st.text_area("Requirement", height=150)
 uploaded_image = st.file_uploader("Upload an image to analyze (optional)", type=["jpg", "jpeg", "png"])
 
-def analyze_image(image_data):
-    """Analyze the uploaded image using Azure Computer Vision API."""
-    ocr_result = computervision_client.read_in_stream(BytesIO(image_data), raw=True)
-    operation_location = ocr_result.headers["Operation-Location"]
-    operation_id = operation_location.split("/")[-1]
-
-    # Wait for the OCR operation to complete
-    result = computervision_client.get_read_result(operation_id)
-
-    # Extract the text if available
-    if result.status == "succeeded":
-        extracted_text = []
-        for page in result.analyze_result.read_results:
-            for line in page.lines:
-                extracted_text.append(line.text)
-        return " ".join(extracted_text)
+def describe_image(image_data):
+    """Describe the uploaded image using Azure Computer Vision API."""
+    image = Image.open(BytesIO(image_data))
+    description_result = computervision_client.describe_image_in_stream(image)
+    
+    if description_result.captions:
+        return " ".join([caption.text for caption in description_result.captions])
     else:
-        return "No text found in the image."
+        return "No description available for the image."
+
 
 
 
