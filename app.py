@@ -24,7 +24,7 @@ st.markdown("""
 # Function to generate test cases
 def generate_test_cases(requirement):
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": "You are a helpful assistant capable of generating software test cases."},
             {"role": "user", "content": requirement}
