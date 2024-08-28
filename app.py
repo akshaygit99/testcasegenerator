@@ -39,13 +39,23 @@ uploaded_image = st.file_uploader("Upload an image to analyze (optional)", type=
 
 def analyze_image(image_data):
     """Analyze the uploaded image using Azure Computer Vision API."""
-    analysis = computervision_client.analyze_image_in_stream(
-        BytesIO(image_data), 
-        visual_features=[VisualFeatureTypes.TAGS]
-    )
-    tags = [tag.name for tag in analysis.tags] if analysis.tags else ["No tags available."]
-    description = f"Detected tags: {', '.join(tags)}"
-    return description
+    ocr_result = computervision_client.read_in_stream(BytesIO(image_data), raw=True)
+    operation_location = ocr_result.headers["Operation-Location"]
+    operation_id = operation_location.split("/")[-1]
+
+    # Wait for the OCR operation to complete
+    result = computervision_client.get_read_result(operation_id)
+
+    # Extract the text if available
+    if result.status == "succeeded":
+        extracted_text = []
+        for page in result.analyze_result.read_results:
+            for line in page.lines:
+                extracted_text.append(line.text)
+        return " ".join(extracted_text)
+    else:
+        return "No text found in the image."
+
 
 
 
