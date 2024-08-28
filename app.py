@@ -58,26 +58,6 @@ st.link_button("Centric India - AI Tool Usage Policy ", "https://centricconsulti
 
 requirement = st.text_area("Requirement", height=150)
 
-st.write('Upload an image:')
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
-
-if uploaded_file is not None:
-    # To read the image file
-    image = Image.open(uploaded_file)
-    st.image(image, caption='Uploaded Image.', use_column_width=True)
-
-    # text = pytesseract.image_to_string(image)
-    # st.write("Text extracted from the image:")
-    # st.write(text)
-    
-    # Combine the extracted text with the requirement text area
-    # if requirement:
-    #     requirement += "\n" + text
-    # else:
-    #     requirement = text
-
-    st.write("Combined Requirement and Extracted Text:")
-    st.text_area("Requirement", value=requirement, height=150)
 
 # Button to generate test cases
 
