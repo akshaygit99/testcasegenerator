@@ -24,7 +24,7 @@ st.markdown("""
 # Function to generate test cases
 def generate_test_cases(requirement):
     response = openai.ChatCompletion.create(
-        model="gpt-4o",
+        model="gpt-4",
         messages=[
             {"role": "system", "content": "You are a helpful assistant capable of generating software test cases."},
             {"role": "user", "content": requirement}
@@ -46,22 +46,14 @@ def get_image_base64(image_raw):
 def add_image_to_messages():
     if st.session_state.uploaded_img or ("camera_img" in st.session_state and st.session_state.camera_img):
         img_type = st.session_state.uploaded_img.type if st.session_state.uploaded_img else "image/jpeg"
-        if img_type == "video/mp4":
-            # Save the video file
-            video_id = random.randint(100000, 999999)
-            with open(f"video_{video_id}.mp4", "wb") as f:
-                f.write(st.session_state.uploaded_img.read())
-            st.session_state.messages.append({
-                "role": "user",
-                "content": [{"type": "video_file", "video_file": f"video_{video_id}.mp4"}]
-            })
-        else:
-            raw_img = Image.open(st.session_state.uploaded_img or st.session_state.camera_img)
-            img = get_image_base64(raw_img)
-            st.session_state.messages.append({
-                "role": "user",
-                "content": [{"type": "image_url", "image_url": {"url": f"data:{img_type};base64,{img}"}}]
-            })
+        raw_img = Image.open(st.session_state.uploaded_img or st.session_state.camera_img)
+        img_base64 = get_image_base64(raw_img)
+        image_url = f"data:{img_type};base64,{img_base64}"
+        # Here you could add image-specific handling if needed
+        st.session_state.messages.append({
+            "role": "user",
+            "content": [{"type": "image_url", "image_url": {"url": image_url}}]
+        })
 
 # Streamlit app layout
 st.title('Test Case Generator :  COE-AI Test')
@@ -110,3 +102,13 @@ if st.button('Generate Test Cases'):
                 st.write(test_cases)
             except Exception as e:
                 st.error(f'An error occurred while generating test cases: {str(e)}')
+
+# Add the image handling to the messages
+if 'messages' in st.session_state and st.session_state.messages:
+    for message in st.session_state.messages:
+        if message['role'] == 'user' and 'content' in message:
+            content = message['content']
+            if isinstance(content, list):
+                for item in content:
+                    if item.get('type') == 'image_url':
+                        st.image(item['image_url']['url'], caption='Uploaded Image', use_column_width=True)
