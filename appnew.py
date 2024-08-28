@@ -1,6 +1,5 @@
 import streamlit as st
 import openai
-import dotenv
 import os
 from PIL import Image
 from audio_recorder_streamlit import audio_recorder
