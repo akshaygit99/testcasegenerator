@@ -32,6 +32,9 @@ def generate_test_cases(requirement):
     )
     return response.choices[0].message['content']
 
+if 'messages' not in st.session_state:
+    st.session_state.messages = []
+
 # Function to convert file to base64
 def get_image_base64(image_raw):
     buffered = BytesIO()
