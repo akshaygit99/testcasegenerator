@@ -1,5 +1,5 @@
 import streamlit as st
-from openai import OpenAI
+import openai
 import dotenv
 import os
 from PIL import Image
