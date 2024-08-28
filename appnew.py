@@ -6,7 +6,7 @@ import base64
 from io import BytesIO
 import random
 
-
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 anthropic_models = [
     "claude-3-5-sonnet-20240620"
