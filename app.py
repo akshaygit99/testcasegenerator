@@ -23,13 +23,14 @@ st.markdown("""
 
 # Function to generate test cases
 def generate_test_cases(requirement):
-    response = openai.chat.completions.create(
-        model="gpt-4o",
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
         messages=[
             {"role": "system", "content": "You are a helpful assistant capable of generating software test cases."},
             {"role": "user", "content": requirement}
         ]
     )
+    # Accessing the content correctly
     return response.choices[0].message['content']
 
 if 'messages' not in st.session_state:
