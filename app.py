@@ -27,7 +27,7 @@ def generate_test_cases(requirement):
 
     response = openai.chat.completions.create(
 
-        model="gpt-3.5-turbo",
+        model="gpt-4-turbo-vision",
 
         messages=[
 
@@ -55,6 +55,27 @@ if 'search_history' not in st.session_state:
 st.link_button("Centric India - AI Tool Usage Policy ", "https://centricconsultingllc.sharepoint.com/sites/CentricIndia/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FCentricIndia%2FShared%20Documents%2FHR%2FCentric%20India%20AI%20Tool%20Usage%20Policy%5F2023%2Epdf&parent=%2Fsites%2FCentricIndia%2FShared%20Documents%2FHR")
 
 requirement = st.text_area("Requirement", height=150)
+
+st.write('Upload an image:')
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+
+if uploaded_file is not None:
+    # To read the image file
+    image = Image.open(uploaded_file)
+    st.image(image, caption='Uploaded Image.', use_column_width=True)
+
+    # text = pytesseract.image_to_string(image)
+    # st.write("Text extracted from the image:")
+    # st.write(text)
+    
+    # Combine the extracted text with the requirement text area
+    # if requirement:
+    #     requirement += "\n" + text
+    # else:
+    #     requirement = text
+
+    st.write("Combined Requirement and Extracted Text:")
+    st.text_area("Requirement", value=requirement, height=150)
 
 # Button to generate test cases
 
