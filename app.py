@@ -73,10 +73,10 @@ def add_image_to_messages():
                                 }
                             )
 
-                cols_img = st.columns(2)
+cols_img = st.columns(2)
 
-                with cols_img[0]:
-                    with st.popover("📁 Upload"):
+with cols_img[0]:
+    with st.popover("📁 Upload"):
                         st.file_uploader(
                             f"Upload an image{' or a video' if model_type == 'google' else ''}:", 
                             type=["png", "jpg", "jpeg"] + (["mp4"] if model_type == "google" else []), 
@@ -85,7 +85,7 @@ def add_image_to_messages():
                             on_change=add_image_to_messages,
                         )
 
-                with cols_img[1]:                    
+with cols_img[1]:                    
                     with st.popover("📸 Camera"):
                         activate_camera = st.checkbox("Activate camera")
                         if activate_camera:
