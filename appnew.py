@@ -1,6 +1,7 @@
 import streamlit as st
 import openai
 import os
+from PIL import Image
 
 # Set your Azure OpenAI API key and endpoint
 openai.api_type = "azure"
@@ -26,6 +27,16 @@ st.write('Enter your software requirement(s) to generate test cases :')
 st.link_button("Centric India - AI Tool Usage Policy ", "https://centricconsultingllc.sharepoint.com/sites/CentricIndia/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FCentricIndia%2FShared%20Documents%2FHR%2FCentric%20India%20AI%20Tool%20Usage%20Policy%5F2023%2Epdf&parent=%2Fsites%2FCentricIndia%2FShared%20Documents%2FHR")
 
 requirement = st.text_area("Requirement", height=150)
+uploaded_image = st.file_uploader("Upload an image to analyze (optional)", type=["jpg", "jpeg", "png"])
+
+if uploaded_image:
+  image = Image.open(uploaded_image)
+  st.image(image, caption='Uploaded Image')
+
+if st.button('Analyse Image'):
+  pass
+
+
 
 def generate_test_cases(requirement):
     response = openai.ChatCompletion.create(
