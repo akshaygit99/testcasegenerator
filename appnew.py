@@ -43,11 +43,12 @@ if st.button('Analyse Image'):
         VisualFeatures.CAPTION,
         VisualFeatures.DENSECAPTIONS
       ]
-    
-      result = client.analyze(
-      image_data = imageBytes,
-      visual_features = visual_features
+      result = client.analyze_from_url(
+      image_url="https://learn.microsoft.com/azure/ai-services/computer-vision/media/quickstarts/presentation.png",
+      visual_features=[VisualFeatures.CAPTION, VisualFeatures.READ],
+      gender_neutral_caption=True,  # Optional (default is False)
       )
+     
       if result.caption:
         st.write("Caption:")
         st.write(f'{result.caption.text}')
