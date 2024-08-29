@@ -65,11 +65,11 @@ if st.button('Analyse Image'):
       image_data = imageBytes,
       visual_features = visual_features
       )
-    if result.caption:
+      if result.caption:
       st.write("Caption:")
       st.write(f'{result.caption.text}')
       st.write(f'{result.caption.confidence:.4f}')
-    if len(result.dense_captions.list) >0:
+      if len(result.dense_captions.list) >0:
       st.write('Dense Captions ')
       st.dataframe(result.dense_captions.list)
   except:
