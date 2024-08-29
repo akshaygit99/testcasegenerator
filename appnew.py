@@ -48,7 +48,7 @@ if uploaded_image:
   image = Image.open(uploaded_image)
   st.image(image, caption='Uploaded Image')
 
-  imageBytes = io.Bytes IO()
+  imageBytes = io.BytesIO()
   image.save(imageBytes, format=image.format)
   imageBytes = imageBytes.getvalue()
 
