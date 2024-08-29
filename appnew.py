@@ -60,10 +60,11 @@ if st.button('Analyse Image'):
         VisualFeatures.CAPTION,
         VisualFeatures.DENSECAPTIONS
       ]
-    result = client.analyze(
+    
+      result = client.analyze(
       image_data = imageBytes,
       visual_features = visual_features
-    )
+      )
     if result.caption:
       st.write("Caption:")
       st.write(f'{result.caption.text}')
