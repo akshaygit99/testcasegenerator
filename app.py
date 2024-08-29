@@ -11,7 +11,7 @@ from io import BytesIO
 openai.api_type = "azure"
 openai.api_base = "https://centriinternalgpt.openai.azure.com/"
 openai.api_version = "2024-03-01-preview"
-openai.api_key = "ed16d540ad3f44bba0656e606a943437" # Replace with your Azure OpenAI API key
+openai.api_key = "ed16d540ad3f44bba0656e606a943437"  # Replace with your Azure OpenAI API key
 
 # Set your Azure Computer Vision API credentials
 AZURE_CV_KEY = "7f40f7e9afe94109ab10a49cd83e31b5"  # Replace with your Azure Computer Vision key
@@ -40,16 +40,12 @@ uploaded_image = st.file_uploader("Upload an image to analyze (optional)", type=
 def describe_image(image_data):
     """Describe the uploaded image using Azure Computer Vision API."""
     image = Image.open(BytesIO(image_data))
-    description_result = computervision_client.describe_image_in_stream(image)
+    description_result = computervision_client.describe_image_in_stream(BytesIO(image_data))
     
     if description_result.captions:
         return " ".join([caption.text for caption in description_result.captions])
     else:
         return "No description available for the image."
-
-
-
-
 
 def generate_test_cases(requirement, image_description=None):
     messages = [
@@ -77,7 +73,7 @@ if st.button('Generate Test Cases'):
                 image_description = None
                 if uploaded_image is not None:
                     image_data = uploaded_image.read()
-                    image_description = analyze_image(image_data)
+                    image_description = describe_image(image_data)
                     st.write(f"Image description: {image_description}")
                 
                 test_cases = generate_test_cases(requirement, image_description)
