@@ -1,7 +1,12 @@
 import streamlit as st
 import openai
+import io
 import os
 from PIL import Image
+from azure.ai.vision.imageanalysis import ImageAnalysisClient
+from azure.ai.vision.imageanalysis.models import VisualFeatures
+from azure.core.credentials import AzureKeyCredential
+
 
 # Set your Azure OpenAI API key and endpoint
 openai.api_type = "azure"
@@ -9,7 +14,17 @@ openai.api_base = "https://centriinternalgpt.openai.azure.com/"
 openai.api_version = "2024-03-01-preview"
 openai.api_key = "ed16d540ad3f44bba0656e606a943437"
 
+
+# Set your Azure Computer Vision API credentials
+AZURE_CV_KEY = "7f40f7e9afe94109ab10a49cd83e31b5" 
+AZURE_CV_ENDPOINT = "https://tcg-cv.cognitiveservices.azure.com/" 
+
 deployment_name = "centricinteralgpt4"
+
+client = ImageAnalysisClient(
+  endpoint = AZURE_CV_ENDPOINT,
+  credential = AzureKeyCredential(AZURE_CV_KEY)
+)
 
 st.markdown("""
 <h1 style='text-align: center; color: white; background-color:#2c1a5d'>
@@ -33,8 +48,31 @@ if uploaded_image:
   image = Image.open(uploaded_image)
   st.image(image, caption='Uploaded Image')
 
+imageBytes = io.ByteIO()
+image.save(imageBytes, format=image.format)
+imageBytes = imageBytes.getvalue()
+
+
 if st.button('Analyse Image'):
-  pass
+  try:
+      visual_features = [
+        VisualFeatures.TAGS,
+        VisualFeatures.CAPTION,
+        VisualFeatures.DENSECAPTIONS
+      ]
+    result = client.analyze(
+      image_data = imageBytes,
+      visual_features = visual_features
+    )
+    if result.caption:
+      st.write("Caption:")
+      st.write(f'{result.caption.text}')
+      st.write(f'{result.caption.confidence:.4f}')
+    if len(result.dense_captions.list) >0:
+      st.write('Dense Captions ')
+      st.dataframe(result.dense_captions.list)
+  except:
+    pass
 
 
 
