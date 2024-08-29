@@ -73,7 +73,7 @@ if st.button('Analyse Image'):
         st.write('Dense Captions ')
         st.dataframe(result.dense_captions.list)
   except:
-    pass
+      pass
 
 
 
