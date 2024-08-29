@@ -3,3 +3,6 @@ streamlit
 Pillow
 azure-cognitiveservices-vision-computervision==0.9.0
 msrest
+azure-ai-vision==1.0.0
+azure-ai-textanalytics==5.2.0
+azure
