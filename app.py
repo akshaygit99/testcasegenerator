@@ -40,8 +40,12 @@ uploaded_image = st.file_uploader("Upload an image to analyze (optional)", type=
 def describe_image(image_data):
     """Describe the uploaded image using Azure Computer Vision API."""
     image = Image.open(BytesIO(image_data))
-    description_result = computervision_client.describe_image_in_stream(BytesIO(image_data))
-    
+    image_stream = BytesIO()
+    image.save(image_stream, format=image.format)
+    image_stream.seek(0)
+
+    description_result = computervision_client.describe_image_in_stream(image_stream)
+
     if description_result.captions:
         return " ".join([caption.text for caption in description_result.captions])
     else:
