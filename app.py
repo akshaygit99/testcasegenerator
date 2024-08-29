@@ -77,7 +77,7 @@ if st.button('Generate Test Cases'):
                 image_description = None
                 if uploaded_image is not None:
                     image_data = uploaded_image.read()
-                    # image_description = analyze_image(image_data)
+                    image_description = analyze_image(image_data)
                     st.write(f"Image description: {image_description}")
                 
                 test_cases = generate_test_cases(requirement, image_description)
