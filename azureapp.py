@@ -71,7 +71,7 @@ elif option == "Upload Image":
                     query = """
                     You are an intelligent assistant capable of generating software test cases with the supplied flow diagram.
                     Analyse this flow diagram and generate software test case based on this image.
-                    Include all necessary HTML tags and attributes to ensure the table is properly formatted and displayed. But dont displays tags in generated test cases
+                    ensure the table is properly formatted and displayed. But dont displays tags in generated test cases
                     Test Case Type should be like Functional, Usability, Compatibility, Performance, etc.
                     Format the response as an HTML table with fixed columns:
                     <table>
