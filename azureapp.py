@@ -34,7 +34,7 @@ def generate_test_cases(requirement, uploaded_image):
     # Add text content to the request
     messages.append({
         "role": "user",
-        "content": requirement + uploaded_image
+        "content": requirement + encode_image_to_base64
     })
 
     # If an image is uploaded, encode it to Base64 and add it to the content
