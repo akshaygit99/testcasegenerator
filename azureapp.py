@@ -27,7 +27,7 @@ option = st.radio("Choose input type:", ("Text Requirement", "Upload Image"))
 # Function to generate test cases from text
 def generate_test_cases(requirement):
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant capable of generating software test cases."},
             {"role": "user", "content": requirement}
@@ -71,7 +71,7 @@ elif option == "Upload Image":
                     query = """
                     You are an intelligent assistant capable of generating software test cases with the supplied flow diagram.
                     Analyse this flow diagram and generate software test case based on this image.
-                    Include all necessary HTML tags and attributes to ensure the table is properly formatted and displayed.
+                    Include all necessary HTML tags and attributes to ensure the table is properly formatted and displayed. But dont displays tags in generated test cases
                     Test Case Type should be like Functional, Usability, Compatibility, Performance, etc.
                     Format the response as an HTML table with fixed columns:
                     <table>
