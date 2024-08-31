@@ -5,11 +5,8 @@ import base64
 
 # Retrieve the API key from the environment variable
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-
-# Initialize the OpenAI client with the API key
 openai.api_key = OPENAI_API_KEY
 
-# Streamlit App UI
 st.markdown("""
 <h1 style='text-align: center; color: white; background-color:#2c1a5d'>
 <span style='color: #fdb825'>((</span>
@@ -18,74 +15,46 @@ st.markdown("""
 <p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements, including BDD format, <b> powered by ChatGPT </b>. It's designed to streamline your testing process and improve efficiency.</p>
 """, unsafe_allow_html=True)
 
-st.title('Test Case Generator :  COE-AI Test')
-st.write('Enter your software requirement(s) to generate test cases or upload an image:')
 
-# Option to choose between Text Input and Image Upload
-option = st.radio("Choose input type:", ("Text Requirement", "Upload Image"))
 
-# Function to generate test cases from text
+# Define the function to generate test cases
 def generate_test_cases(requirement):
     response = openai.ChatCompletion.create(
-        model="gpt-4-turbo",
+        model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant capable of generating software test cases."},
             {"role": "user", "content": requirement}
         ]
     )
-    return response.choices[0].message.content
+    return response.choices[0].message['content']
 
-# Function to encode the image as Base64
-def encode_image(image_data):
-    return base64.b64encode(image_data).decode('utf-8')
+# Function to encode the image
+def encode_image(image):
+    return base64.b64encode(image.read()).decode('utf-8')
 
-# Input and Button Logic
-if option == "Text Requirement":
-    requirement = st.text_area("Requirement", height=150)
-    
-    if st.button('Generate Test Cases'):
-        if requirement:
-            with st.spinner('Generating...'):
-                try:
-                    test_cases = generate_test_cases(requirement)
-                    st.success('Generated Test Cases')
-                    st.write(test_cases)
-                except Exception as e:
-                    st.error('An error occurred while generating test cases.')
-                    st.error(e)
-        else:
-            st.error('Please enter a requirement to generate test cases.')
+# Text area for user to enter the software requirement
+requirement = st.text_area("Requirement", height=150)
 
-elif option == "Upload Image":
-    uploaded_image = st.file_uploader("Upload an Image", type=["png", "jpg", "jpeg"])
-    
-    if st.button('Generate Test Cases from Image'):
-        if uploaded_image:
-            with st.spinner('Generating...'):
-                try:
-                    # Convert image to base64
-                    image_data = uploaded_image.read()
-                    image_base64 = encode_image(image_data)
+# Image upload for generating test cases from an image
+uploaded_image = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
 
-                    # OpenAI API call with image data
-                    query = """
-                    You are an intelligent assistant capable of generating software test cases with the supplied flow diagram.
-                    Analyse this flow diagram and generate software test case based on this image.
-                    ensure the table is properly formatted and displayed. But dont displays tags in generated test cases
-                    Test Case Type should be like Functional, Usability, Compatibility, Performance, etc.
-                    Format the response as an HTML table with fixed columns:
-                    <table>
-                    <tr>
-                        <th>Test Case ID</th>
-                        <th>Test Case Type</th>
-                        <th>Prerequisite</th>
-                        <th>Test Scenario</th>
-                    </tr>
-                    """
+# Query for image-based test cases
+query = """
+You are an intelligent assistant capable of generating software test cases with the supplied flow diagram. 
+Analyse this flow diagram and generate software test cases based on this image. 
+"""
+# Dropdown to choose the format
+format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD'])
 
-                    # OpenAI API payload
+# Button to generate test cases
+if st.button('Generate Test Cases'):
+    if requirement or uploaded_image:
+        with st.spinner('Generating...'):
+            try:
+                if uploaded_image:
+                    image_base64 = encode_image(uploaded_image)
                     response = openai.ChatCompletion.create(
-                        model="gpt-4-turbo",
+                        model="gpt-4o-mini",
                         messages=[
                             {
                                 "role": "user",
@@ -97,20 +66,22 @@ elif option == "Upload Image":
                         ],
                         max_tokens=1300
                     )
+                    test_cases = response.choices[0].message['content']
+                else:
+                    test_cases = generate_test_cases(requirement)
 
-                    test_cases = response.choices[0].message.content
-                    st.success('Generated Test Cases')
-                    st.write(test_cases)
+                # Differentiate between BDD and NON-BDD based on the dropdown
+                if format_option == 'BDD':
+                    test_cases = test_cases.replace('<table>', '<table style="border: 1px solid black;">').replace('<th>', '<th style="border: 1px solid black;">')
+                
+                st.success('Generated Test Cases')
+                st.write(test_cases)
 
-                except Exception as e:
-                    st.error('An error occurred while generating test cases.')
-                    st.error(e)
-        else:
-            st.error('Please upload an image to generate test cases.')
-
-# Show Search History
-if 'search_history' not in st.session_state:
-    st.session_state.search_history = []
+            except Exception as e:
+                st.error('An error occurred while generating test cases.')
+                st.error(e)
+    else:
+        st.error('Please enter a requirement or upload an image to generate test cases.')
 
 st.write('Search History:')
-st.write(st.session_state.search_history)
+st.write(st.session_state.get('search_history', []))
