@@ -28,13 +28,13 @@ def encode_image_to_base64(image_file):
     return img_str
 
 # Define the function to generate test cases
-def generate_test_cases(requirement, uploaded_image=None):
+def generate_test_cases(requirement, uploaded_image):
     messages = []
 
     # Add text content to the request
     messages.append({
         "role": "user",
-        "content": requirement
+        "content": requirement + uploaded_image
     })
 
     # If an image is uploaded, encode it to Base64 and add it to the content
