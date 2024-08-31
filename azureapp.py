@@ -16,19 +16,7 @@ st.markdown("""
 <p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements, including BDD format, <b> powered by ChatGPT </b>. It's designed to streamline your testing process and improve efficiency.</p>
 """, unsafe_allow_html=True)
 
-# Define the function to generate test cases
-def generate_test_cases(requirement, format_type):
-    system_message = "Generate test cases in BDD format." if format_type == "BDD" else "Generate test cases in text format."
 
-    response = openai.ChatCompletion.create(
-        model="gpt-4-turbo",
-        messages=[
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": requirement}
-        ]
-    )
-
-    return response.choices[0].message['content']
 
 # Streamlit app layout
 st.title('Test Case Generator :  COE-AI Test')
@@ -45,6 +33,20 @@ st.link_button("Centric India - AI Tool Usage Policy", "https://centricconsultin
 
 # Text area for user to enter the software requirement
 requirement = st.text_area("Requirement", height=150)
+
+# Define the function to generate test cases
+def generate_test_cases(requirement, format_type):
+    system_message = "Generate test cases in BDD format." if format_type == "BDD" else "Generate test cases in text format."
+
+    response = openai.ChatCompletion.create(
+        model="gpt-4-turbo",
+        messages=[
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": requirement}
+        ]
+    )
+
+    return response.choices[0].message['content']
 
 # Button to generate test cases
 if st.button('Generate Test Cases'):
