@@ -1,9 +1,6 @@
 import streamlit as st
 import openai
 import os
-import base64
-from PIL import Image
-import io
 
 # Retrieve the API key from the environment variable
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -19,45 +16,15 @@ st.markdown("""
 <p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements, including BDD format, <b> powered by ChatGPT </b>. It's designed to streamline your testing process and improve efficiency.</p>
 """, unsafe_allow_html=True)
 
-# Function to encode image to base64
-def encode_image_to_base64(image_file):
-    image = Image.open(image_file)
-    buffered = io.BytesIO()
-    image.save(buffered, format="JPEG")
-    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-    return img_str
-
 # Define the function to generate test cases
-def generate_test_cases(requirement, uploaded_image):
-    messages = []
+def generate_test_cases(requirement, format_type):
+    system_message = "Generate test cases in BDD format." if format_type == "BDD" else "Generate test cases in text format."
 
-    # Add text content to the request
-    messages.append({
-        "role": "user",
-        "content": requirement
-    })
-
-    # If an image is uploaded, encode it to Base64 and add it to the content
-    if uploaded_image is not None:
-        encoded_image = encode_image_to_base64(uploaded_file)
-        image_url = f"data:image/jpeg;base64,{encoded_image}"
-        messages.append({
-            "role": "user",
-            "content": f"Here is an image to consider: {image_url}"
-        })
-
-    # Debugging line to check token usage
-    def count_tokens(messages):
-        return sum(len(message['content']) for message in messages)
-
-    print(f"Total tokens: {count_tokens(messages)}")
-
-    # Call the OpenAI service to generate test cases
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
         messages=[
-            {"role": "system", "content": "You are a helpful assistant capable of generating software test cases based on text and images."},
-            *messages
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": requirement}
         ]
     )
 
@@ -66,28 +33,26 @@ def generate_test_cases(requirement, uploaded_image):
 # Streamlit app layout
 st.title('Test Case Generator :  COE-AI Test')
 
+st.write('Select the format for the test cases:')
+format_type = st.selectbox('Choose format', ['BDD', 'NON-BDD'])
+
 st.write('Enter your software requirement(s) to generate test cases:')
 
 if 'search_history' not in st.session_state:
     st.session_state.search_history = []
 
+st.link_button("Centric India - AI Tool Usage Policy", "https://centricconsultingllc.sharepoint.com/sites/CentricIndia/Shared%20Documents/Forms/AllItems.aspx?id=%2Fsites%2FCentricIndia%2FShared%20Documents%2FHR%2FCentric%20India%20AI%20Tool%20Usage%20Policy%5F2023%2Epdf&parent=%2Fsites%2FCentricIndia%2FShared%20Documents%2FHR")
+
 # Text area for user to enter the software requirement
 requirement = st.text_area("Requirement", height=150)
 
-# Image upload
-st.write('Upload an image:')
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
-
 # Button to generate test cases
 if st.button('Generate Test Cases'):
-
-    if requirement or uploaded_file:
-
+    if requirement:
         with st.spinner('Generating...'):
-
             try:
-                # Generate test cases based on the requirement and uploaded image
-                test_cases = generate_test_cases(requirement, uploaded_image=uploaded_file)
+                # Generate test cases based on the requirement and selected format
+                test_cases = generate_test_cases(requirement, format_type)
 
                 st.success('Generated Test Cases')
                 st.write(test_cases)
@@ -97,9 +62,8 @@ if st.button('Generate Test Cases'):
                 st.error(e)
 
             st.session_state.search_history.append(requirement)
-
     else:
-        st.error('Please enter a requirement or upload an image to generate test cases.')
+        st.error('Please enter a requirement to generate test cases.')
 
 st.write('Search History:')
 st.write(st.session_state.search_history)
