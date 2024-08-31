@@ -22,7 +22,6 @@ st.markdown("""
 st.title('Test Case Generator :  COE-AI Test')
 
 st.write('Select the format for the test cases:')
-format_type = st.selectbox('Choose format', ['BDD', 'NON-BDD'])
 
 st.write('Enter your software requirement(s) to generate test cases:')
 
@@ -33,6 +32,8 @@ st.link_button("Centric India - AI Tool Usage Policy", "https://centricconsultin
 
 # Text area for user to enter the software requirement
 requirement = st.text_area("Requirement", height=150)
+
+format_type = st.selectbox('Choose format', ['BDD', 'NON-BDD'])
 
 # Define the function to generate test cases
 def generate_test_cases(requirement, format_type):
