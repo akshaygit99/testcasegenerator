@@ -39,12 +39,18 @@ def generate_test_cases(requirement, uploaded_image=None):
 
     # If an image is uploaded, encode it to Base64 and add it to the content
     if uploaded_image is not None:
-        encoded_image = encode_image_to_base64(uploaded_image)
+        encoded_image = encode_image_to_base64(uploaded_file)
         image_url = f"data:image/jpeg;base64,{encoded_image}"
         messages.append({
             "role": "user",
             "content": f"Here is an image to consider: {image_url}"
         })
+
+    # Debugging line to check token usage
+    def count_tokens(messages):
+        return sum(len(message['content']) for message in messages)
+
+    print(f"Total tokens: {count_tokens(messages)}")
 
     # Call the OpenAI service to generate test cases
     response = openai.ChatCompletion.create(
