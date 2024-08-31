@@ -26,7 +26,7 @@ def generate_test_cases(requirement, uploaded_image=None):
         combined_requirement = requirement
 
     # Call the OpenAI service to generate test cases
-    response = openai.chat.completions.create(
+    response = openai.ChatCompletion.create(
         model="GPT-4o",
         messages=[
             {"role": "system", "content": "You are a helpful assistant capable of generating software test cases."},
