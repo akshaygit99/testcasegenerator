@@ -15,9 +15,13 @@ st.markdown("""
 <p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements, including BDD format, <b> powered by ChatGPT </b>. It's designed to streamline your testing process and improve efficiency.</p>
 """, unsafe_allow_html=True)
 
+# Dropdown to choose the format
+format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD'])
 
+# Checkbox to choose between Text or Image-based test cases
+test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploaded Image'))
 
-# Define the function to generate test cases
+# Define the function to generate test cases from text
 def generate_test_cases(requirement):
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
@@ -33,25 +37,28 @@ def encode_image(image):
     return base64.b64encode(image.read()).decode('utf-8')
 
 # Text area for user to enter the software requirement
-requirement = st.text_area("Requirement", height=150)
+requirement = st.text_area("Requirement", height=150) if test_case_source == 'Text Input' else None
 
 # Image upload for generating test cases from an image
-uploaded_image = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"])
+uploaded_image = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"]) if test_case_source == 'Uploaded Image' else None
 
 # Query for image-based test cases
 query = """
 You are an intelligent assistant capable of generating software test cases with the supplied flow diagram. 
 Analyse this flow diagram and generate software test cases based on this image. 
+Include all necessary HTML tags and attributes to ensure the table is properly formatted and displayed. 
+Test Case Type should be like Functional, Usability, Compatibility, Performance, etc. 
+Format the response as an HTML table with fixed columns:
+<table>
+<tr><th>Test Case ID</th><th>Test Case Type</th><th>Prerequisite</th><th>Test Scenario</th></tr>
 """
-# Dropdown to choose the format
-format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD'])
 
 # Button to generate test cases
 if st.button('Generate Test Cases'):
-    if requirement or uploaded_image:
+    if (requirement and test_case_source == 'Text Input') or (uploaded_image and test_case_source == 'Uploaded Image'):
         with st.spinner('Generating...'):
             try:
-                if uploaded_image:
+                if test_case_source == 'Uploaded Image' and uploaded_image:
                     image_base64 = encode_image(uploaded_image)
                     response = openai.ChatCompletion.create(
                         model="gpt-4o-mini",
