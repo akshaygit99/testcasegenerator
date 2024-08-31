@@ -19,7 +19,12 @@ st.markdown("""
 test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploaded Image'))
 
 # Define the function to generate test cases from text
-def generate_test_cases(requirement):
+def generate_test_cases(requirement, format_option):
+    if format_option == 'BDD':
+        requirement += "\n\nGenerate the test cases in Gherkin syntax."
+    else:
+        requirement += "\n\nGenerate the test cases in plain text format."
+
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
         messages=[
@@ -45,7 +50,6 @@ You are an intelligent assistant capable of generating software test cases with 
 Analyse this flow diagram and generate software test cases based on this image.
 """
 
-
 # Dropdown to choose the format
 format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD'])
 
@@ -56,8 +60,13 @@ if st.button('Generate Test Cases'):
             try:
                 if test_case_source == 'Uploaded Image' and uploaded_image:
                     image_base64 = encode_image(uploaded_image)
+                    if format_option == 'BDD':
+                        query += "\n\nGenerate the test cases in Gherkin syntax."
+                    else:
+                        query += "\n\nGenerate the test cases in plain text format."
+
                     response = openai.ChatCompletion.create(
-                        model="gpt-4o-mini",
+                        model="gpt-4-turbo",
                         messages=[
                             {
                                 "role": "user",
@@ -71,12 +80,8 @@ if st.button('Generate Test Cases'):
                     )
                     test_cases = response.choices[0].message['content']
                 else:
-                    test_cases = generate_test_cases(requirement)
+                    test_cases = generate_test_cases(requirement, format_option)
 
-                # Differentiate between BDD and NON-BDD based on the dropdown
-                if format_option == 'BDD':
-                    test_cases = test_cases.replace('<table>', '<table style="border: 1px solid black;">').replace('<th>', '<th style="border: 1px solid black;">')
-                
                 st.success('Generated Test Cases')
                 st.write(test_cases)
 
