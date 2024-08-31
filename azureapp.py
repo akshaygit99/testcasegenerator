@@ -29,28 +29,21 @@ def encode_image_to_base64(image_file):
 
 # Define the function to generate test cases
 def generate_test_cases(requirement, uploaded_image=None):
-    content = []
+    messages = []
 
     # Add text content to the request
-    content.append({
+    messages.append({
         "role": "user",
-        "content": {
-            "type": "text",
-            "text": requirement
-        }
+        "content": requirement
     })
 
     # If an image is uploaded, encode it to Base64 and add it to the content
     if uploaded_image is not None:
         encoded_image = encode_image_to_base64(uploaded_image)
-        content.append({
+        image_url = f"data:image/jpeg;base64,{encoded_image}"
+        messages.append({
             "role": "user",
-            "content": {
-                "type": "image_url",
-                "image_url": {
-                    "url": f"data:image/jpeg;base64,{encoded_image}"
-                }
-            }
+            "content": f"Here is an image to consider: {image_url}"
         })
 
     # Call the OpenAI service to generate test cases
@@ -58,11 +51,11 @@ def generate_test_cases(requirement, uploaded_image=None):
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant capable of generating software test cases based on text and images."},
-            *content
+            *messages
         ]
     )
 
-    return response.choices[0].message.content
+    return response.choices[0].message['content']
 
 # Streamlit app layout
 st.title('Test Case Generator :  COE-AI Test')
