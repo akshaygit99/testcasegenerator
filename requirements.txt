@@ -1,6 +1,2 @@
 ﻿openai==0.28
 streamlit
-Pillow
-azure-ai-vision==0.15.1b1
-azure-ai-textanalytics
-azure-ai-vision-imageanalysis
