@@ -12,7 +12,7 @@ st.markdown("""
 <span style='color: #fdb825'>((</span>
              CENTRIC 
 <span style='color: #fdb825'>))</span></h1>
-<p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements <b> powered by Open AI </b>. It's designed to streamline your testing process and improve efficiency.</p>
+<p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements <b>powered by a fine-tuned Open AI model</b>. It's designed to streamline your testing process and improve efficiency.</p>
 """, unsafe_allow_html=True)
 
 # Checkbox to choose between Text or Image-based test cases
@@ -28,9 +28,12 @@ def generate_test_cases(requirement, format_option):
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
         messages=[
-            {"role": "system", "content": "You are a helpful assistant capable of generating software test cases."},
+            {"role": "system", "content": "You are a helpful assistant capable of generating software test cases based on fine-tuned inputs."},
             {"role": "user", "content": requirement}
-        ]
+        ],
+        temperature=0.7,  # Controls creativity. Higher values = more random, lower values = more focused
+        presence_penalty=0.6,  # Discourages repetitive responses
+        frequency_penalty=0.3  # Adjusts to avoid repeating frequently mentioned elements
     )
     return response.choices[0].message['content']
 
@@ -76,6 +79,9 @@ if st.button('Generate Test Cases'):
                                 ]
                             }
                         ],
+                        temperature=0.7,  # Controls creativity
+                        presence_penalty=0.6,  # Discourages repetitive responses
+                        frequency_penalty=0.3,  # Avoids frequent repetition
                         max_tokens=1300
                     )
                     test_cases = response.choices[0].message['content']
@@ -91,5 +97,6 @@ if st.button('Generate Test Cases'):
     else:
         st.error('Please enter a requirement or upload an image to generate test cases.')
 
+# Display search history
 st.write('Search History:')
 st.write(st.session_state.get('search_history', []))
