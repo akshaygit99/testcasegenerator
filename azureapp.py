@@ -114,7 +114,6 @@ if st.button('Generate Test Cases'):
                     test_cases = generate_test_cases(requirement, format_option, template_type)
 
                 st.success('Generated Test Cases')
-                st.write(test_cases)
 
                 # Split the generated test cases into rows for the DataFrame
                 rows = [line.strip() for line in test_cases.split('\n') if line.strip()]
