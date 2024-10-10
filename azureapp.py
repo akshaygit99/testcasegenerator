@@ -15,8 +15,8 @@ st.markdown("""
 <p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements <b>powered by a fine-tuned Open AI model</b>. It's designed to streamline your testing process and improve efficiency.</p>
 """, unsafe_allow_html=True)
 
-# Radio button to choose between different test case generation methods
-test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploaded Image', 'Test Case Template'))
+# Radio button to choose between Text Input or Uploaded Image
+test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploaded Image'))
 
 # Function to generate test cases from text
 def generate_test_cases(requirement, format_option):
@@ -41,11 +41,6 @@ def generate_test_cases(requirement, format_option):
 def encode_image(image):
     return base64.b64encode(image.read()).decode('utf-8')
 
-# Test case template dropdown for Jira/Azure templates
-template_type = None
-if test_case_source == 'Test Case Template':
-    template_type = st.selectbox('Choose Template Type', ['Jira Template', 'Azure Template'])
-
 # Text area for user to enter the software requirement
 requirement = st.text_area("Requirement", height=150) if test_case_source == 'Text Input' else None
 
@@ -59,7 +54,10 @@ Analyse this flow diagram and generate software test cases based on this image.
 """
 
 # Dropdown to choose the format
-format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD']) if test_case_source != 'Test Case Template' else None
+format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD'])
+
+# New Section for Test Case Templates
+template_type = st.radio("Choose Test Case Template:", ['None', 'Jira Template', 'Azure Template'])
 
 # Function to generate test cases in a tabular format
 def generate_test_cases_in_tabular_format(template_type):
@@ -79,7 +77,7 @@ def generate_test_cases_in_tabular_format(template_type):
 
 # Button to generate test cases
 if st.button('Generate Test Cases'):
-    if test_case_source == 'Test Case Template' and template_type:
+    if template_type != 'None':
         st.success(f"Generating Test Cases in {template_type} format...")
         generate_test_cases_in_tabular_format(template_type)
     elif (requirement and test_case_source == 'Text Input') or (uploaded_image and test_case_source == 'Uploaded Image'):
