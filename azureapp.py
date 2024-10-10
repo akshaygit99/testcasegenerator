@@ -115,22 +115,25 @@ if st.button('Generate Test Cases'):
 
                 st.success('Generated Test Cases')
 
-                # Based on template, create a DataFrame
+                # Split test cases into rows
+                rows = [line.strip() for line in test_cases.split('\n') if line.strip()]
+
+                # Based on template, create a DataFrame with appropriate number of columns
                 if format_option == 'Test Case Template' and template_type == 'Jira Template':
                     columns = ['Step', 'Test Steps', 'Expected Result', 'Actual Results', 'Status', 'Notes']
+                    df = pd.DataFrame([row.split(',')[:6] for row in rows], columns=columns)
                 elif format_option == 'Test Case Template' and template_type == 'Azure Template':
                     columns = ['Title', 'Order', 'Test Case ID', 'Assigned To', 'State']
+                    df = pd.DataFrame([row.split(',')[:5] for row in rows], columns=columns)
                 else:
-                    columns = ['Test Case']
+                    st.write("Test cases generated:")
+                    st.write(test_cases)
+                    return
 
-                # Split test cases into rows (assuming line breaks separate cases)
-                rows = [line.split(',') for line in test_cases.split('\n') if line.strip()]
-                df = pd.DataFrame(rows, columns=columns)
-
-                # Display test cases
+                # Display the generated test cases as a DataFrame
                 st.write(df)
 
-                # Provide download link for test cases
+                # Provide a download link for the DataFrame as CSV
                 download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
                 st.markdown(download_link, unsafe_allow_html=True)
 
