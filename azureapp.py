@@ -15,10 +15,10 @@ st.markdown("""
 <p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements <b>powered by a fine-tuned Open AI model</b>. It's designed to streamline your testing process and improve efficiency.</p>
 """, unsafe_allow_html=True)
 
-# Checkbox to choose between Text or Image-based test cases
-test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploaded Image'))
+# Radio button to choose between different test case generation methods
+test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploaded Image', 'Test Case Template'))
 
-# Define the function to generate test cases from text
+# Function to generate test cases from text
 def generate_test_cases(requirement, format_option):
     if format_option == 'BDD':
         requirement += "\n\nGenerate the test cases in Gherkin syntax."
@@ -31,15 +31,20 @@ def generate_test_cases(requirement, format_option):
             {"role": "system", "content": "You are a helpful assistant capable of generating software test cases based on fine-tuned inputs."},
             {"role": "user", "content": requirement}
         ],
-        temperature=0.7,  # Controls creativity. Higher values = more random, lower values = more focused
-        presence_penalty=0.6,  # Discourages repetitive responses
-        frequency_penalty=0.3  # Adjusts to avoid repeating frequently mentioned elements
+        temperature=0.7,
+        presence_penalty=0.6,
+        frequency_penalty=0.3
     )
     return response.choices[0].message['content']
 
 # Function to encode the image
 def encode_image(image):
     return base64.b64encode(image.read()).decode('utf-8')
+
+# Test case template dropdown for Jira/Azure templates
+template_type = None
+if test_case_source == 'Test Case Template':
+    template_type = st.selectbox('Choose Template Type', ['Jira Template', 'Azure Template'])
 
 # Text area for user to enter the software requirement
 requirement = st.text_area("Requirement", height=150) if test_case_source == 'Text Input' else None
@@ -54,11 +59,30 @@ Analyse this flow diagram and generate software test cases based on this image.
 """
 
 # Dropdown to choose the format
-format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD'])
+format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD']) if test_case_source != 'Test Case Template' else None
+
+# Function to generate test cases in a tabular format
+def generate_test_cases_in_tabular_format(template_type):
+    if template_type == 'Jira Template':
+        header = ["Test Case ID", "Test Case Summary", "Test Steps", "Expected Result", "Priority"]
+    elif template_type == 'Azure Template':
+        header = ["Test Case ID", "Test Case Title", "Action Steps", "Expected Result", "Severity"]
+
+    # Generate dummy data for the table (You can replace this with your AI-generated test cases)
+    data = [
+        ["TC-001", "Login functionality", "Enter username and password", "User is logged in", "High"],
+        ["TC-002", "Logout functionality", "Click on logout button", "User is logged out", "Medium"]
+    ]
+
+    # Create table in Streamlit
+    st.table([header] + data)
 
 # Button to generate test cases
 if st.button('Generate Test Cases'):
-    if (requirement and test_case_source == 'Text Input') or (uploaded_image and test_case_source == 'Uploaded Image'):
+    if test_case_source == 'Test Case Template' and template_type:
+        st.success(f"Generating Test Cases in {template_type} format...")
+        generate_test_cases_in_tabular_format(template_type)
+    elif (requirement and test_case_source == 'Text Input') or (uploaded_image and test_case_source == 'Uploaded Image'):
         with st.spinner('Generating...'):
             try:
                 if test_case_source == 'Uploaded Image' and uploaded_image:
@@ -79,9 +103,9 @@ if st.button('Generate Test Cases'):
                                 ]
                             }
                         ],
-                        temperature=0.7,  # Controls creativity
-                        presence_penalty=0.6,  # Discourages repetitive responses
-                        frequency_penalty=0.3,  # Avoids frequent repetition
+                        temperature=0.7,
+                        presence_penalty=0.6,
+                        frequency_penalty=0.3,
                         max_tokens=1300
                     )
                     test_cases = response.choices[0].message['content']
