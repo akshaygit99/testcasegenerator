@@ -28,7 +28,7 @@ def generate_test_cases(requirement, format_option, template_type=None):
         requirement += "\n\nGenerate the test cases in plain text format."
     elif format_option == 'Test Case Template' and template_type:
         if template_type == 'Jira Template':
-            requirement += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Test Case Description, Expected Result, Actual Result, Status, Notes."
+            requirement += "\n\n Create test cases with column name as test case id , test case  description , expected result , actual result, execution status, bug severity"
         elif template_type == 'Azure Template':
             requirement += "\n\nGenerate test cases in tabular format with columns: Title, Order, Test Case ID, Assigned To, State."
 
@@ -37,10 +37,7 @@ def generate_test_cases(requirement, format_option, template_type=None):
         messages=[
             {"role": "system", "content": "You are a helpful assistant capable of generating software test cases based on fine-tuned inputs."},
             {"role": "user", "content": requirement}
-        ],
-        temperature=0.7,
-        presence_penalty=0.6,
-        frequency_penalty=0.3
+        ]
     )
     return response.choices[0].message['content']
 
@@ -89,7 +86,7 @@ if st.button('Generate Test Cases'):
                     elif format_option == 'NON-BDD':
                         query += "\n\nGenerate the test cases in plain text format."
                     elif format_option == 'Test Case Template' and template_type == 'Jira Template':
-                        query += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Test Case Description, Expected Result, Actual Result, Status, Notes."
+                        query += "\n\nCreate test cases with column name as test case id , test case  description , expected result , actual result, execution status, bug severity"
                     elif format_option == 'Test Case Template' and template_type == 'Azure Template':
                         query += "\n\nGenerate test cases in tabular format with columns: Title, Order, Test Case ID, Assigned To, State."
 
@@ -103,11 +100,7 @@ if st.button('Generate Test Cases'):
                                     {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_base64}"}}
                                 ]
                             }
-                        ],
-                        temperature=0.7,
-                        presence_penalty=0.6,
-                        frequency_penalty=0.3,
-                        max_tokens=1300
+                        ]
                     )
                     test_cases = response.choices[0].message['content']
                 else:
