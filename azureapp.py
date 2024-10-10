@@ -116,7 +116,6 @@ if st.button('Generate Test Cases'):
 
                 if test_cases:
                     st.success('Generated Test Cases')
-                    st.write(test_cases)
 
                     # Split the generated test cases into rows for the DataFrame
                     rows = [line.strip() for line in test_cases.split('\n') if line.strip()]
@@ -142,12 +141,13 @@ if st.button('Generate Test Cases'):
                         # Create the DataFrame with the appropriate columns
                         df = pd.DataFrame(data, columns=columns)
 
-                        # Display the test cases in tabular format
-                        st.dataframe(df)
-
                         # Provide a download link for the DataFrame as an Excel file
                         download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
                         st.markdown(download_link, unsafe_allow_html=True)
+
+                        # Only display the table after the download link to avoid rendering duplicates
+                        st.dataframe(df)
+
                 else:
                     st.error("No test cases were generated. Please try again.")
 
