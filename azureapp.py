@@ -111,6 +111,8 @@ if st.button('Generate Test Cases'):
     else:
         st.error('Please enter a requirement or upload an image to generate test cases.')
 
-# Display search history
-st.write('Search History:')
-st.write(st.session_state.get('search_history', []))
+ st.write(df)
+
+                # Provide a download link for the DataFrame as CSV
+                download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
+                st.markdown(download_link, unsafe_allow_html=True)
