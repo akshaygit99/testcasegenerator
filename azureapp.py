@@ -2,8 +2,6 @@ import streamlit as st
 import openai
 import os
 import base64
-import pandas as pd
-from io import BytesIO
 
 # Retrieve the API key from the environment variable
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -28,9 +26,9 @@ def generate_test_cases(requirement, format_option, template_type=None):
         requirement += "\n\nGenerate the test cases in plain text format."
     elif format_option == 'Test Case Template' and template_type:
         if template_type == 'Jira Template':
-            requirement += "\n\nGenerate test cases in tabular format with columns: Step, Test Steps, Expected Result, Actual Results, Status, Notes."
+            requirement += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Expected Result, Actual Result."
         elif template_type == 'Azure Template':
-            requirement += "\n\nGenerate test cases in tabular format with columns: Title, Order, Test Case ID, Assigned To, State."
+            requirement += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Expected Result, Actual Result, Bug ID."
 
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
@@ -47,15 +45,6 @@ def generate_test_cases(requirement, format_option, template_type=None):
 # Function to encode the image
 def encode_image(image):
     return base64.b64encode(image.read()).decode('utf-8')
-
-# Function to create a downloadable CSV
-def create_download_link(dataframe, filename):
-    towrite = BytesIO()
-    dataframe.to_csv(towrite, index=False)
-    towrite.seek(0)
-    b64 = base64.b64encode(towrite.read()).decode()
-    link = f'<a href="data:file/csv;base64,{b64}" download="{filename}.csv">Download {filename}</a>'
-    return link
 
 # Text area for user to enter the software requirement
 requirement = st.text_area("Requirement", height=150) if test_case_source == 'Text Input' else None
@@ -89,9 +78,9 @@ if st.button('Generate Test Cases'):
                     elif format_option == 'NON-BDD':
                         query += "\n\nGenerate the test cases in plain text format."
                     elif format_option == 'Test Case Template' and template_type == 'Jira Template':
-                        query += "\n\nGenerate test cases in tabular format with columns: Step, Test Steps, Expected Result, Actual Results, Status, Notes."
+                        query += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Expected Result, Actual Result."
                     elif format_option == 'Test Case Template' and template_type == 'Azure Template':
-                        query += "\n\nGenerate test cases in tabular format with columns: Title, Order, Test Case ID, Assigned To, State."
+                        query += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Expected Result, Actual Result, Bug ID."
 
                     response = openai.ChatCompletion.create(
                         model="gpt-4-turbo",
@@ -114,28 +103,7 @@ if st.button('Generate Test Cases'):
                     test_cases = generate_test_cases(requirement, format_option, template_type)
 
                 st.success('Generated Test Cases')
-
-                # Split test cases into rows
-                rows = [line.strip() for line in test_cases.split('\n') if line.strip()]
-
-                # Based on template, create a DataFrame with appropriate number of columns
-                if format_option == 'Test Case Template' and template_type == 'Jira Template':
-                    columns = ['Step', 'Test Steps', 'Expected Result', 'Actual Results', 'Status', 'Notes']
-                    df = pd.DataFrame([row.split(',')[:6] for row in rows], columns=columns)
-                elif format_option == 'Test Case Template' and template_type == 'Azure Template':
-                    columns = ['Title', 'Order', 'Test Case ID', 'Assigned To', 'State']
-                    df = pd.DataFrame([row.split(',')[:5] for row in rows], columns=columns)
-                else:
-                    st.write("Test cases generated:")
-                    st.write(test_cases)
-                    return
-
-                # Display the generated test cases as a DataFrame
-                st.write(df)
-
-                # Provide a download link for the DataFrame as CSV
-                download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
-                st.markdown(download_link, unsafe_allow_html=True)
+                st.write(test_cases)
 
             except Exception as e:
                 st.error('An error occurred while generating test cases.')
