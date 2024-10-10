@@ -22,9 +22,9 @@ test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploade
 def generate_test_cases(requirement, format_option):
     if format_option == 'BDD':
         requirement += "\n\nGenerate the test cases in Gherkin syntax."
-    else:
+    elif format_option == 'NON-BDD':
         requirement += "\n\nGenerate the test cases in plain text format."
-
+    # If Test Case Template is selected, this will be handled separately
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
         messages=[
@@ -53,11 +53,13 @@ You are an intelligent assistant capable of generating software test cases with 
 Analyse this flow diagram and generate software test cases based on this image.
 """
 
-# Dropdown to choose the format
-format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD'])
+# Dropdown to choose the format, now with "Test Case Template"
+format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD', 'Test Case Template'])
 
-# New Section for Test Case Templates
-template_type = st.radio("Choose Test Case Template:", ['None', 'Jira Template', 'Azure Template'])
+# If the user selects "Test Case Template", allow them to choose between Jira and Azure templates
+template_type = None
+if format_option == 'Test Case Template':
+    template_type = st.radio("Choose a Template:", ['Jira Template', 'Azure Template'])
 
 # Function to generate test cases in a tabular format
 def generate_test_cases_in_tabular_format(test_cases, template_type):
@@ -80,16 +82,11 @@ def generate_test_cases_in_tabular_format(test_cases, template_type):
 
 # Button to generate test cases
 if st.button('Generate Test Cases'):
-    if template_type != 'None':  # Generate tabular format for Jira/Azure
+    if format_option == 'Test Case Template' and template_type:  # Generate tabular format for Jira/Azure
         with st.spinner('Generating Test Cases in tabular format...'):
             try:
                 if test_case_source == 'Uploaded Image' and uploaded_image:
                     image_base64 = encode_image(uploaded_image)
-                    if format_option == 'BDD':
-                        query += "\n\nGenerate the test cases in Gherkin syntax."
-                    else:
-                        query += "\n\nGenerate the test cases in plain text format."
-
                     response = openai.ChatCompletion.create(
                         model="gpt-4-turbo",
                         messages=[
