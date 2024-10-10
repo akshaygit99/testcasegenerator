@@ -118,21 +118,23 @@ if st.button('Generate Test Cases'):
 
                 # Split the generated test cases into rows for the DataFrame
                 rows = [line.strip() for line in test_cases.split('\n') if line.strip()]
-                if format_option == 'Test Case Template' and template_type == 'Jira Template':
-                    columns = ['Test Case Number', 'Expected Result', 'Actual Result']
-                elif format_option == 'Test Case Template' and template_type == 'Azure Template':
-                    columns = ['Test Case Number', 'Expected Result', 'Actual Result', 'Bug ID']
 
-                # Assuming that the rows are structured as comma-separated values, this will create the DataFrame
-                data = [row.split(',') for row in rows]
-                df = pd.DataFrame(data, columns=columns)
+                if format_option == 'Test Case Template':
+                    if template_type == 'Jira Template':
+                        columns = ['Test Case Number', 'Expected Result', 'Actual Result']
+                    elif template_type == 'Azure Template':
+                        columns = ['Test Case Number', 'Expected Result', 'Actual Result', 'Bug ID']
 
-                # Display the test cases in tabular format
-                st.dataframe(df)
+                    # Assuming that the rows are structured as comma-separated values
+                    data = [row.split(',') for row in rows]
+                    df = pd.DataFrame(data, columns=columns)
 
-                # Provide a download link for the DataFrame as an Excel file
-                download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
-                st.markdown(download_link, unsafe_allow_html=True)
+                    # Display the test cases in tabular format
+                    st.dataframe(df)
+
+                    # Provide a download link for the DataFrame as an Excel file
+                    download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
+                    st.markdown(download_link, unsafe_allow_html=True)
 
             except Exception as e:
                 st.error('An error occurred while generating test cases.')
