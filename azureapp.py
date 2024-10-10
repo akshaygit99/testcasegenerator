@@ -19,12 +19,17 @@ st.markdown("""
 test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploaded Image'))
 
 # Function to generate test cases from text
-def generate_test_cases(requirement, format_option):
+def generate_test_cases(requirement, format_option, template_type=None):
     if format_option == 'BDD':
         requirement += "\n\nGenerate the test cases in Gherkin syntax."
     elif format_option == 'NON-BDD':
         requirement += "\n\nGenerate the test cases in plain text format."
-    # If Test Case Template is selected, this will be handled separately
+    elif format_option == 'Test Case Template' and template_type:
+        if template_type == 'Jira Template':
+            requirement += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Expected Result, Actual Result."
+        elif template_type == 'Azure Template':
+            requirement += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Expected Result, Actual Result, Bug ID."
+
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
         messages=[
@@ -61,67 +66,21 @@ template_type = None
 if format_option == 'Test Case Template':
     template_type = st.radio("Choose a Template:", ['Jira Template', 'Azure Template'])
 
-# Function to generate test cases in a tabular format
-def generate_test_cases_in_tabular_format(test_cases, template_type):
-    if template_type == 'Jira Template':
-        header = ["Test Case ID", "Test Case Summary", "Test Steps", "Expected Result", "Priority"]
-    elif template_type == 'Azure Template':
-        header = ["Test Case ID", "Test Case Title", "Action Steps", "Expected Result", "Severity"]
-
-    # Assuming the test cases are generated in a bullet list format, split them into rows
-    test_cases_list = test_cases.split("\n")
-
-    # Example: converting list of test cases into table format for simplicity
-    data = []
-    for idx, case in enumerate(test_cases_list):
-        if case.strip():  # Avoid empty lines
-            data.append([f"TC-{idx + 1:03}", case, "Steps to reproduce", "Expected outcome", "Medium"])
-
-    # Create table in Streamlit
-    st.table([header] + data)
-
 # Button to generate test cases
 if st.button('Generate Test Cases'):
-    if format_option == 'Test Case Template' and template_type:  # Generate tabular format for Jira/Azure
-        with st.spinner('Generating Test Cases in tabular format...'):
-            try:
-                if test_case_source == 'Uploaded Image' and uploaded_image:
-                    image_base64 = encode_image(uploaded_image)
-                    response = openai.ChatCompletion.create(
-                        model="gpt-4-turbo",
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": [
-                                    {"type": "text", "text": query},
-                                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_base64}"}}
-                                ]
-                            }
-                        ],
-                        temperature=0.7,
-                        presence_penalty=0.6,
-                        frequency_penalty=0.3,
-                        max_tokens=1300
-                    )
-                    test_cases = response.choices[0].message['content']
-                else:
-                    test_cases = generate_test_cases(requirement, format_option)
-
-                generate_test_cases_in_tabular_format(test_cases, template_type)
-
-            except Exception as e:
-                st.error('An error occurred while generating test cases.')
-                st.error(e)
-
-    elif (requirement and test_case_source == 'Text Input') or (uploaded_image and test_case_source == 'Uploaded Image'):
+    if (requirement and test_case_source == 'Text Input') or (uploaded_image and test_case_source == 'Uploaded Image'):
         with st.spinner('Generating...'):
             try:
                 if test_case_source == 'Uploaded Image' and uploaded_image:
                     image_base64 = encode_image(uploaded_image)
                     if format_option == 'BDD':
                         query += "\n\nGenerate the test cases in Gherkin syntax."
-                    else:
+                    elif format_option == 'NON-BDD':
                         query += "\n\nGenerate the test cases in plain text format."
+                    elif format_option == 'Test Case Template' and template_type == 'Jira Template':
+                        query += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Expected Result, Actual Result."
+                    elif format_option == 'Test Case Template' and template_type == 'Azure Template':
+                        query += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Expected Result, Actual Result, Bug ID."
 
                     response = openai.ChatCompletion.create(
                         model="gpt-4-turbo",
@@ -141,7 +100,7 @@ if st.button('Generate Test Cases'):
                     )
                     test_cases = response.choices[0].message['content']
                 else:
-                    test_cases = generate_test_cases(requirement, format_option)
+                    test_cases = generate_test_cases(requirement, format_option, template_type)
 
                 st.success('Generated Test Cases')
                 st.write(test_cases)
