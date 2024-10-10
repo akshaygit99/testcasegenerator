@@ -9,7 +9,6 @@ from io import BytesIO
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 openai.api_key = OPENAI_API_KEY
 
-# Streamlit app layout and description
 st.markdown("""
 <h1 style='text-align: center; color: white; background-color:#2c1a5d'>
 <span style='color: #fdb825'>((</span>
@@ -29,9 +28,9 @@ def generate_test_cases(requirement, format_option, template_type=None):
         requirement += "\n\nGenerate the test cases in plain text format."
     elif format_option == 'Test Case Template' and template_type:
         if template_type == 'Jira Template':
-            requirement += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Expected Result, Actual Result."
+            requirement += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Test Case Description, Expected Result, Actual Result, Status, Notes."
         elif template_type == 'Azure Template':
-            requirement += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Expected Result, Actual Result, Bug ID."
+            requirement += "\n\nGenerate test cases in tabular format with columns: Title, Order, Test Case ID, Assigned To, State."
 
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
@@ -90,9 +89,9 @@ if st.button('Generate Test Cases'):
                     elif format_option == 'NON-BDD':
                         query += "\n\nGenerate the test cases in plain text format."
                     elif format_option == 'Test Case Template' and template_type == 'Jira Template':
-                        query += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Expected Result, Actual Result."
+                        query += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Test Case Description, Expected Result, Actual Result, Status, Notes."
                     elif format_option == 'Test Case Template' and template_type == 'Azure Template':
-                        query += "\n\nGenerate test cases in tabular format with columns: Test Case Number, Expected Result, Actual Result, Bug ID."
+                        query += "\n\nGenerate test cases in tabular format with columns: Title, Order, Test Case ID, Assigned To, State."
 
                     response = openai.ChatCompletion.create(
                         model="gpt-4-turbo",
@@ -114,42 +113,32 @@ if st.button('Generate Test Cases'):
                 else:
                     test_cases = generate_test_cases(requirement, format_option, template_type)
 
-                if test_cases:
-                    st.success('Generated Test Cases')
+                st.success('Generated Test Cases')
+                st.write(test_cases)
 
-                    # Split the generated test cases into rows for the DataFrame
-                    rows = [line.strip() for line in test_cases.split('\n') if line.strip()]
+                # Split the generated test cases into rows for the DataFrame
+                rows = [line.strip() for line in test_cases.split('\n') if line.strip()]
 
-                    # Define columns based on the selected template
-                    if format_option == 'Test Case Template':
-                        if template_type == 'Jira Template':
-                            columns = ['Test Case Number', 'Expected Result', 'Actual Result']
-                            expected_num_columns = 3
-                        elif template_type == 'Azure Template':
-                            columns = ['Test Case Number', 'Expected Result', 'Actual Result', 'Bug ID']
-                            expected_num_columns = 4
+                # Handle different formats
+                if format_option == 'Test Case Template' and template_type == 'Jira Template':
+                    columns = ['Test Case Number', 'Test Case Description', 'Expected Result', 'Actual Result', 'Status', 'Notes']
+                elif format_option == 'Test Case Template' and template_type == 'Azure Template':
+                    columns = ['Title', 'Order', 'Test Case ID', 'Assigned To', 'State']
 
-                        # Split the rows into columns and fill in missing values if necessary
-                        data = []
-                        for row in rows:
-                            split_row = row.split(',')
-                            if len(split_row) < expected_num_columns:
-                                # Fill missing columns with None if fewer columns are provided
-                                split_row.extend([None] * (expected_num_columns - len(split_row)))
-                            data.append(split_row)
+                # Ensure the number of columns matches the data by splitting properly
+                # Assuming rows contain data separated by a delimiter like '|'
+                data = [row.split('|') for row in rows]
 
-                        # Create the DataFrame with the appropriate columns
-                        df = pd.DataFrame(data, columns=columns)
+                # Check if the data has the correct number of columns
+                if all(len(row) == len(columns) for row in data):
+                    df = pd.DataFrame(data, columns=columns)
+                    st.dataframe(df)
 
-                        # Provide a download link for the DataFrame as an Excel file
-                        download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
-                        st.markdown(download_link, unsafe_allow_html=True)
-
-                        # Only display the table after the download link to avoid rendering duplicates
-                        st.dataframe(df)
-
+                    # Provide a download link for the DataFrame as an Excel file
+                    download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
+                    st.markdown(download_link, unsafe_allow_html=True)
                 else:
-                    st.error("No test cases were generated. Please try again.")
+                    st.error('Mismatch between data and column headers. Please check the generated data format.')
 
             except Exception as e:
                 st.error('An error occurred while generating test cases.')
