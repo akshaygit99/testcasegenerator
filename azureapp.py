@@ -111,7 +111,7 @@ if st.button('Generate Test Cases'):
     else:
         st.error('Please enter a requirement or upload an image to generate test cases.')
 
- st.write(df)
+    st.write(df)
 
                 # Provide a download link for the DataFrame as CSV
                 download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
