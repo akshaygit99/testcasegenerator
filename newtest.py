@@ -28,7 +28,6 @@ def generate_test_cases(requirement, format_option):
     elif format_option == 'Tabular':
         requirement += "\n\nGenerate the test cases in a tabular format with the following columns: Test Case ID, Test Case Description, Expected Result, Actual Result, Execution Status, and Bug Severity."
 
-
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
         messages=[
@@ -42,7 +41,7 @@ def generate_test_cases(requirement, format_option):
 def encode_image(image):
     return base64.b64encode(image.read()).decode('utf-8')
 
-# Text area for user to enter the software requirement
+# Text area for user to enter the software requirement (only for text input case)
 requirement = st.text_area("Requirement", height=150) if test_case_source == 'Text Input' else None
 
 # Image upload for generating test cases from an image
@@ -64,13 +63,14 @@ if st.button('Generate Test Cases'):
             try:
                 if test_case_source == 'Uploaded Image' and uploaded_image:
                     image_base64 = encode_image(uploaded_image)
-                    if format_option == 'BDD - A':
-                        requirement += "\n\nGenerate the test cases in Gherkin syntax."
-                    elif format_option == 'NON-BDD':
-                        requirement += "\n\nGenerate the test cases in plain text format."
-                    elif format_option == 'Tabular':
-                        requirement += "\n\nGenerate the test cases in a tabular format with the following columns: Test Case ID, Test Case Description, Expected Result, Actual Result, Execution Status, and Bug Severity."
 
+                    # Add the format instructions to the query when generating test cases from the image
+                    if format_option == 'BDD':
+                        query += "\n\nGenerate the test cases in Gherkin syntax."
+                    elif format_option == 'NON-BDD':
+                        query += "\n\nGenerate the test cases in plain text format."
+                    elif format_option == 'Tabular':
+                        query += "\n\nGenerate the test cases in a tabular format with the following columns: Test Case ID, Test Case Description, Expected Result, Actual Result, Execution Status, and Bug Severity."
 
                     response = openai.ChatCompletion.create(
                         model="gpt-4-turbo",
@@ -87,6 +87,7 @@ if st.button('Generate Test Cases'):
                     )
                     test_cases = response.choices[0].message['content']
                 else:
+                    # If generating from text input, handle with the generate_test_cases function
                     test_cases = generate_test_cases(requirement, format_option)
 
                 st.success('Generated Test Cases')
