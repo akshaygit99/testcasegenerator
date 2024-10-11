@@ -66,16 +66,9 @@ main_format_option = st.selectbox(
 format_option = None
 if main_format_option == 'Test Case Template':
     st.write("Select one of the following templates:")
-    azure_template = st.checkbox('Azure Template')
-    jira_template = st.checkbox('Jira Template')
-
-    # Ensure that only one template is selected
-    if azure_template and not jira_template:
-        format_option = 'Azure Template'
-    elif jira_template and not azure_template:
-        format_option = 'Jira Template'
-    elif azure_template and jira_template:
-        st.error("Please select only one template (Azure or Jira).")
+    # Horizontal radio buttons for selecting either Azure or Jira template
+    template_option = st.radio('Choose Template:', ['Azure Template', 'Jira Template'], horizontal=True)
+    format_option = template_option
 else:
     format_option = main_format_option
 
