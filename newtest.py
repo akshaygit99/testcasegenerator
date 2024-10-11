@@ -21,7 +21,7 @@ test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploade
 # Define the function to generate test cases from text
 def generate_test_cases(requirement, format_option):
  
-    if format_option == 'BDD - A':
+    if format_option == 'BDD':
         requirement += "\n\nGenerate the test cases in Gherkin syntax."
     elif format_option == 'NON-BDD':
         requirement += "\n\nGenerate the test cases in plain text format."
@@ -64,10 +64,13 @@ if st.button('Generate Test Cases'):
             try:
                 if test_case_source == 'Uploaded Image' and uploaded_image:
                     image_base64 = encode_image(uploaded_image)
-                    if format_option == 'BDD':
-                        query += "\n\nGenerate the test cases in Gherkin syntax."
-                    else:
-                        query += "\n\nGenerate the test cases in plain text format."
+                    if format_option == 'BDD - A':
+                        requirement += "\n\nGenerate the test cases in Gherkin syntax."
+                    elif format_option == 'NON-BDD':
+                        requirement += "\n\nGenerate the test cases in plain text format."
+                    elif format_option == 'Tabular':
+                        requirement += "\n\nGenerate the test cases in a tabular format with the following columns: Test Case ID, Test Case Description, Expected Result, Actual Result, Execution Status, and Bug Severity."
+
 
                     response = openai.ChatCompletion.create(
                         model="gpt-4-turbo",
