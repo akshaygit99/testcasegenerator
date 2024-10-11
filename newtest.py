@@ -27,6 +27,8 @@ def generate_test_cases(requirement, format_option):
         requirement += "\n\nGenerate the test cases in plain text format."
     elif format_option == 'Azure Template':
         requirement += "\n\nGenerate the test cases in a tabular format with the following columns: Title, Work Item Type, Test Step, Step Action and Step Executed"
+    elif format_option == 'Jira Template':
+        requirement += "\n\nGenerate the test cases in a tabular format with the following columns: Title, Work Item Type, Test Step, Step Action and Step Executed"
 
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
@@ -54,7 +56,7 @@ Analyse this flow diagram and generate software test cases based on this image.
 """
 
 # Dropdown to choose the format
-format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD', 'Azure Template'])
+format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD', 'Azure Template', 'Jira Template'])
 
 # Button to generate test cases
 if st.button('Generate Test Cases'):
@@ -70,6 +72,8 @@ if st.button('Generate Test Cases'):
                     elif format_option == 'NON-BDD':
                         query += "\n\nGenerate the test cases in plain text format."
                     elif format_option == 'Azure Template':
+                        query += "\n\nGenerate the test cases in a tabular format with the following columns: Title, Work Item Type, Test Step, Step Action and Step Executed"
+                    elif format_option == 'Jira Template':
                         query += "\n\nGenerate the test cases in a tabular format with the following columns: Title, Work Item Type, Test Step, Step Action and Step Executed"
 
                     response = openai.ChatCompletion.create(
