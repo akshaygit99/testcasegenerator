@@ -70,7 +70,7 @@ if st.button('Generate Test Cases'):
                     elif format_option == 'NON-BDD':
                         query += "\n\nGenerate the test cases in plain text format."
                     elif format_option == 'Tabular':
-                        query += "\n\nGenerate the test cases in a tabular format with the following columns: Test Case ID, Test Case Description, Expected Result, Actual Result, Execution Status, and Bug Severity."
+                        query += "\n\nGenerate the test cases in a tabular format with the following columns: Title, Work Item Type, Test Step, Step Action and Step Executed"
 
                     response = openai.ChatCompletion.create(
                         model="gpt-4-turbo",
