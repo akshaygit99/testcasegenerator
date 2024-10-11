@@ -102,6 +102,3 @@ if st.button('Generate Test Cases'):
                 st.error(e)
     else:
         st.error('Please enter a requirement or upload an image to generate test cases.')
-
-st.write('Search History:')
-st.write(st.session_state.get('search_history', []))
