@@ -55,7 +55,7 @@ Analyse this flow diagram and generate software test cases based on this image.
 """
 
 # Dropdown to choose the format
-format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD'])
+format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD', 'Tabular'])
 
 # Button to generate test cases
 if st.button('Generate Test Cases'):
