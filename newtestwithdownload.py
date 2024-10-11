@@ -63,13 +63,19 @@ main_format_option = st.selectbox(
 )
 
 # Initialize format_option based on user selection
+format_option = None
 if main_format_option == 'Test Case Template':
-    # Secondary dropdown for template selection
-    template_option = st.selectbox(
-        'Choose Test Case Template',
-        ['Azure Template', 'Jira Template']
-    )
-    format_option = template_option
+    st.write("Select one of the following templates:")
+    azure_template = st.checkbox('Azure Template')
+    jira_template = st.checkbox('Jira Template')
+
+    # Ensure that only one template is selected
+    if azure_template and not jira_template:
+        format_option = 'Azure Template'
+    elif jira_template and not azure_template:
+        format_option = 'Jira Template'
+    elif azure_template and jira_template:
+        st.error("Please select only one template (Azure or Jira).")
 else:
     format_option = main_format_option
 
@@ -78,45 +84,48 @@ else:
 # Button to generate test cases
 if st.button('Generate Test Cases'):
     if (requirement and test_case_source == 'Text Input') or (uploaded_image and test_case_source == 'Uploaded Image'):
-        with st.spinner('Generating...'):
-            try:
-                if test_case_source == 'Uploaded Image' and uploaded_image:
-                    image_base64 = encode_image(uploaded_image)
+        if format_option:
+            with st.spinner('Generating...'):
+                try:
+                    if test_case_source == 'Uploaded Image' and uploaded_image:
+                        image_base64 = encode_image(uploaded_image)
 
-                    # Add the format instructions to the query when generating test cases from the image
-                    if format_option == 'BDD':
-                        modified_query = query + "\n\nGenerate the test cases in Gherkin syntax."
-                    elif format_option == 'NON-BDD':
-                        modified_query = query + "\n\nGenerate the test cases in plain text format."
-                    elif format_option == 'Azure Template':
-                        modified_query = query + "\n\nGenerate the test cases in a tabular format with the following columns: Title, Work Item Type, Test Step, Step Action and Step Executed"
-                    elif format_option == 'Jira Template':
-                        modified_query = query + "\n\nGenerate the test cases in a tabular format with the following columns: Description, Test Name, Test Step, Test Data and Expected Result"
+                        # Add the format instructions to the query when generating test cases from the image
+                        if format_option == 'BDD':
+                            modified_query = query + "\n\nGenerate the test cases in Gherkin syntax."
+                        elif format_option == 'NON-BDD':
+                            modified_query = query + "\n\nGenerate the test cases in plain text format."
+                        elif format_option == 'Azure Template':
+                            modified_query = query + "\n\nGenerate the test cases in a tabular format with the following columns: Title, Work Item Type, Test Step, Step Action and Step Executed"
+                        elif format_option == 'Jira Template':
+                            modified_query = query + "\n\nGenerate the test cases in a tabular format with the following columns: Description, Test Name, Test Step, Test Data and Expected Result"
 
-                    response = openai.ChatCompletion.create(
-                        model="gpt-4-turbo",
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": modified_query
-                            },
-                            {
-                                "role": "user",
-                                "content": f"![Flow Diagram](data:image/png;base64,{image_base64})"
-                            }
-                        ],
-                        max_tokens=1300
-                    )
-                    test_cases = response.choices[0].message['content']
-                else:
-                    # If generating from text input, handle with the generate_test_cases function
-                    test_cases = generate_test_cases(requirement, format_option)
+                        response = openai.ChatCompletion.create(
+                            model="gpt-4-turbo",
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": modified_query
+                                },
+                                {
+                                    "role": "user",
+                                    "content": f"![Flow Diagram](data:image/png;base64,{image_base64})"
+                                }
+                            ],
+                            max_tokens=1300
+                        )
+                        test_cases = response.choices[0].message['content']
+                    else:
+                        # If generating from text input, handle with the generate_test_cases function
+                        test_cases = generate_test_cases(requirement, format_option)
 
-                st.success('Generated Test Cases')
-                st.write(test_cases)
+                    st.success('Generated Test Cases')
+                    st.write(test_cases)
 
-            except Exception as e:
-                st.error('An error occurred while generating test cases.')
-                st.error(e)
+                except Exception as e:
+                    st.error('An error occurred while generating test cases.')
+                    st.error(e)
+        else:
+            st.error('Please select a format or template to generate test cases.')
     else:
         st.error('Please enter a requirement or upload an image to generate test cases.')
