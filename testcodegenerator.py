@@ -1,75 +1,48 @@
 import streamlit as st
+import openai
+import os
 
-# Function to generate boilerplate test code based on language
+# Retrieve the API key from the environment variable
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+openai.api_key = OPENAI_API_KEY
+
+st.markdown("""
+<h1 style='text-align: center; color: white; background-color:#2c1a5d'>
+<span style='color: #fdb825'>((</span>
+             CENTRIC 
+<span style='color: #fdb825'>))</span></h1>
+<p style='font-size: 15px; text-align: left;'>This utility generates boilerplate test code based on user requirements <b> powered by Open AI </b>. Select a language to streamline your coding process and improve efficiency.</p>
+""", unsafe_allow_html=True)
+
+# Text area for user to enter the software requirement
+requirement = st.text_area("Requirement", height=150, placeholder="Enter the test requirement here")
+
+# Dropdown to choose the language
+language_option = st.selectbox('Generate Test Code in:', ['Java', 'Python', 'C#'])
+
+# Function to generate test code based on requirement and selected language
 def generate_test_code(requirement, language):
-    if language == "Java":
-        code = f"""
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-
-public class RequirementTest {{
-    @Test
-    public void testRequirement() {{
-        // Requirement: {requirement}
-        // Add your test code logic here
-
-        // Example assertion (customize as needed)
-        assertEquals(true, true);
-    }}
-}}
-"""
-    elif language == "Python":
-        code = f"""
-import unittest
-
-class RequirementTest(unittest.TestCase):
-    def test_requirement(self):
-        # Requirement: {requirement}
-        # Add your test code logic here
-
-        # Example assertion (customize as needed)
-        self.assertTrue(True)
-
-if __name__ == "__main__":
-    unittest.main()
-"""
-    elif language == "C#":
-        code = f"""
-using NUnit.Framework;
-
-[TestFixture]
-public class RequirementTest
-{{
-    [Test]
-    public void TestRequirement()
-    {{
-        // Requirement: {requirement}
-        // Add your test code logic here
-
-        // Example assertion (customize as needed)
-        Assert.IsTrue(true);
-    }}
-}}
-"""
-    else:
-        code = "Unsupported language selected."
-
-    return code
-
-# Streamlit app setup
-st.title("Test Code Generator")
-
-# Input field for the requirement
-requirement = st.text_input("Requirement:", placeholder="Enter the requirement here")
-
-# Dropdown menu to select language
-language = st.selectbox("Generate Test Code in:", ["Java", "Python", "C#"])
+    prompt = f"Generate boilerplate test code in {language} for the following requirement:\n\n{requirement}"
+    
+    response = openai.ChatCompletion.create(
+        model="gpt-4-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant capable of generating boilerplate test code based on user requirements in Java, Python, or C#."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return response.choices[0].message['content']
 
 # Button to generate test code
-if st.button("Generate Test Code"):
+if st.button('Generate Test Code'):
     if requirement:
-        # Generate and display the test code
-        test_code = generate_test_code(requirement, language)
-        st.code(test_code, language=language.lower())
+        with st.spinner('Generating...'):
+            try:
+                test_code = generate_test_code(requirement, language_option)
+                st.success('Generated Test Code')
+                st.code(test_code, language=language_option.lower())
+            except Exception as e:
+                st.error('An error occurred while generating test code.')
+                st.error(e)
     else:
-        st.warning("Please enter a requirement to generate test code.")
+        st.error('Please enter a requirement to generate test code.')
