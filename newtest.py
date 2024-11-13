@@ -12,7 +12,7 @@ st.markdown("""
 <span style='color: #fdb825'>((</span>
              CENTRIC 
 <span style='color: #fdb825'>))</span></h1>
-<p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements <b> powered by Open AI Akshay </b>. It's designed to streamline your testing process and improve efficiency.</p>
+<p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements <b> powered by Open AI </b>. It's designed to streamline your testing process and improve efficiency.</p>
 """, unsafe_allow_html=True)
 
 # Checkbox to choose between Text or Image-based test cases
