@@ -7,20 +7,21 @@ import base64
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 openai.api_key = OPENAI_API_KEY
 
-# App header and description
+# Streamlit UI Design
 st.markdown("""
 <h1 style='text-align: center; color: white; background-color:#2c1a5d'>
 <span style='color: #fdb825'>((</span>
              CENTRIC 
 <span style='color: #fdb825'>))</span></h1>
-<p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements <b>powered by Open AI</b>. It's designed to streamline your testing process and improve efficiency.</p>
+<p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements <b> powered by Open AI </b>. It's designed to streamline your testing process and improve efficiency.</p>
 """, unsafe_allow_html=True)
 
-# Radio button to select between Text Input and Uploaded Image
+# Checkbox to choose between Text or Image-based test cases
 test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploaded Image'))
 
-# Function to generate test cases from text input
-def generate_test_cases(requirement, format_option):
+# Define the function to generate test cases
+def generate_test_cases(requirement, format_option, id_sequence=None):
+    # Append additional instructions based on format
     if format_option == 'BDD':
         requirement += "\n\nGenerate the test cases in Gherkin syntax."
     elif format_option == 'NON-BDD':
@@ -28,13 +29,20 @@ def generate_test_cases(requirement, format_option):
     elif format_option == 'Azure Template':
         requirement += (
             "\n\nGenerate the test cases in a tabular format with the following columns: "
-        "ID, Work Item Type, Title, Test Step, Step Action, and Step Expected. "
-        "Set 'Work Item Type' to 'Test Case' for every row, and ensure no columns are empty. "
-        "Use nested numbering for steps (e.g., 1, 1.1, 1.2 for substeps). Ensure the hierarchy matches the given context."
+            "ID, Work Item Type, Title, Test Step, Step Action, and Step Expected. "
+            "Set 'Work Item Type' to 'Test Case' for every row. Use nested numbering for test steps (e.g., 1, 1.1, 1.2) "
+            "and ensure each test case contains more than one test step."
         )
+        if id_sequence:
+            requirement += f"\n\nUse the following sequence of IDs for test cases: {', '.join(id_sequence)}."
     elif format_option == 'Jira Template':
-        requirement += "\n\nGenerate the test cases in a tabular format with the following columns: Description, Test Name, Test Step, Test Data and Expected Result."
+        requirement += (
+            "\n\nGenerate the test cases in a tabular format with the following columns: "
+            "Description, Test Name, Test Step, Test Data, and Expected Result. "
+            "Ensure each test case contains more than one test step."
+        )
 
+    # Call OpenAI API
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
         messages=[
@@ -44,26 +52,31 @@ def generate_test_cases(requirement, format_option):
     )
     return response.choices[0].message['content']
 
-# Function to encode an uploaded image into Base64
+# Function to encode the image
 def encode_image(image):
     return base64.b64encode(image.read()).decode('utf-8')
 
-# Text area for user requirements (for Text Input)
+# Input for text-based or image-based test case generation
 requirement = st.text_area("Requirement", height=150) if test_case_source == 'Text Input' else None
-
-# File uploader for image input (for Uploaded Image)
 uploaded_image = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"]) if test_case_source == 'Uploaded Image' else None
 
-# Query for generating test cases from an image
+# Query for image-based test cases
 query = """
 You are an intelligent assistant capable of generating software test cases with the supplied flow diagram. 
 Analyse this flow diagram and generate software test cases based on this image.
 """
 
-# Dropdown to select the test case format
+# Dropdown for format selection
 format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD', 'Azure Template', 'Jira Template'])
 
-# Generate button logic
+# Input for Azure ID sequence
+id_sequence = None
+if format_option == 'Azure Template':
+    id_sequence_input = st.text_input("Enter ID sequence (comma-separated)", value="1, 2, 3")
+    if id_sequence_input:
+        id_sequence = [id.strip() for id in id_sequence_input.split(",")]
+
+# Button to generate test cases
 if st.button('Generate Test Cases'):
     if (requirement and test_case_source == 'Text Input') or (uploaded_image and test_case_source == 'Uploaded Image'):
         with st.spinner('Generating...'):
@@ -71,7 +84,7 @@ if st.button('Generate Test Cases'):
                 if test_case_source == 'Uploaded Image' and uploaded_image:
                     image_base64 = encode_image(uploaded_image)
 
-                    # Add specific formatting instructions for Azure Template
+                    # Add format instructions to the query
                     if format_option == 'BDD':
                         query += "\n\nGenerate the test cases in Gherkin syntax."
                     elif format_option == 'NON-BDD':
@@ -80,12 +93,18 @@ if st.button('Generate Test Cases'):
                         query += (
                             "\n\nGenerate the test cases in a tabular format with the following columns: "
                             "ID, Work Item Type, Title, Test Step, Step Action, and Step Expected. "
-                            "Use nested numbering for steps (e.g., 1, 1.1, 1.2 for substeps). Ensure the hierarchy matches the given context."
+                            "Set 'Work Item Type' to 'Test Case' for every row. Use nested numbering for test steps "
+                            "(e.g., 1, 1.1, 1.2) and ensure each test case contains more than one test step."
                         )
+                        if id_sequence:
+                            query += f"\n\nUse the following sequence of IDs for test cases: {', '.join(id_sequence)}."
                     elif format_option == 'Jira Template':
-                        query += "\n\nGenerate the test cases in a tabular format with the following columns: Description, Test Name, Test Step, Test Data and Expected Result."
+                        query += (
+                            "\n\nGenerate the test cases in a tabular format with the following columns: "
+                            "Description, Test Name, Test Step, Test Data, and Expected Result. "
+                            "Ensure each test case contains more than one test step."
+                        )
 
-                    # API call for image-based test cases
                     response = openai.ChatCompletion.create(
                         model="gpt-4-turbo",
                         messages=[
@@ -101,8 +120,8 @@ if st.button('Generate Test Cases'):
                     )
                     test_cases = response.choices[0].message['content']
                 else:
-                    # Generate test cases from text input
-                    test_cases = generate_test_cases(requirement, format_option)
+                    # Generate from text input
+                    test_cases = generate_test_cases(requirement, format_option, id_sequence)
 
                 st.success('Generated Test Cases')
                 st.write(test_cases)
