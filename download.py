@@ -1,8 +1,8 @@
 import streamlit as st
 import openai
 import os
-import pandas as pd
-from io import BytesIO
+import csv
+from io import StringIO, BytesIO
 
 # Retrieve the API key from the environment variable
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -50,17 +50,29 @@ def generate_test_cases(requirement, format_option):
     )
     return response.choices[0].message['content']
 
-# Function to download DataFrame as CSV
-def download_csv(dataframe, filename):
-    output = BytesIO()
-    dataframe.to_csv(output, index=False)
+# Function to download CSV
+def generate_csv(data, filename):
+    output = StringIO()
+    writer = csv.writer(output)
+    writer.writerows(data)
     output.seek(0)
     return st.download_button(
         label=f"Download {filename}.csv",
-        data=output,
+        data=output.getvalue(),
         file_name=f"{filename}.csv",
         mime="text/csv"
     )
+
+# Function to render HTML table
+def render_html_table(data, headers):
+    html = "<table style='width: 100%; border: 1px solid black; border-collapse: collapse;'>"
+    # Add header row
+    html += "<tr>" + "".join([f"<th style='border: 1px solid black; padding: 8px;'>{header}</th>" for header in headers]) + "</tr>"
+    # Add data rows
+    for row in data:
+        html += "<tr>" + "".join([f"<td style='border: 1px solid black; padding: 8px;'>{cell}</td>" for cell in row]) + "</tr>"
+    html += "</table>"
+    return html
 
 # Text Input or Image Upload
 if test_case_source == 'Text Input':
@@ -82,21 +94,18 @@ if st.button('Generate Test Cases'):
             try:
                 test_cases = generate_test_cases(requirement, format_option)
 
-                # For Azure and Jira Templates, convert to DataFrame
+                # For Azure and Jira Templates, handle data manually
                 if format_option in ['Azure Template', 'Jira Template']:
-                    # Define columns based on format
+                    # Define headers and process rows
                     if format_option == 'Azure Template':
-                        columns = ['ID', 'Work Item Type', 'Title', 'Test Step', 'Step Action', 'Step Expected']
+                        headers = ['ID', 'Work Item Type', 'Title', 'Test Step', 'Step Action', 'Step Expected']
                     else:
-                        columns = ['Description', 'Test Name', 'Test Step', 'Test Data', 'Expected Result']
+                        headers = ['Description', 'Test Name', 'Test Step', 'Test Data', 'Expected Result']
 
-                    # Split test cases into rows and handle data conversion
+                    # Parse test cases into rows
                     rows = [row.split(",") for row in test_cases.split("\n") if row]
-                    df = pd.DataFrame(rows, columns=columns)
-
-                    # Display DataFrame and Download Button
-                    st.dataframe(df)
-                    download_csv(df, format_option)
+                    st.markdown(render_html_table(rows, headers), unsafe_allow_html=True)
+                    generate_csv([headers] + rows, format_option)
                 else:
                     # Display plain text test cases
                     st.text_area("Generated Test Cases", test_cases, height=300)
