@@ -41,7 +41,7 @@ def generate_test_cases(requirement, format_option):
     elif format_option == 'Test Rail Template':
         requirement += (
             "\n\nGenerate the test cases in a tabular format with the following columns: "
-            "Title, Section, Milestone, Precondition, Step Description, Additional Step Description, and Expected Result. "
+            "ID, Title, Automated, Automation Type, Created By, Created On, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)"
             "For the steps, ensure they include detailed Step Description, Additional Step Information, and Expected Result."
         )
 
