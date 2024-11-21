@@ -38,6 +38,12 @@ def generate_test_cases(requirement, format_option):
             "Description, Test Name, Test Step, Test Data, and Expected Result. "
             "Ensure each test case contains more than one test step."
         )
+    elif format_option == 'Test Rail Template':
+        requirement += (
+            "\n\nGenerate the test cases in a tabular format with the following columns: "
+            "Title, Section, Milestone, Precondition, Step Description, Additional Step Description, and Expected Result. "
+            "For the steps, ensure they include detailed Step Description, Additional Step Information, and Expected Result."
+        )
 
     # Call OpenAI API
     response = openai.ChatCompletion.create(
@@ -57,14 +63,8 @@ def encode_image(image):
 requirement = st.text_area("Requirement", height=150) if test_case_source == 'Text Input' else None
 uploaded_image = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"]) if test_case_source == 'Uploaded Image' else None
 
-# Query for image-based test cases
-query = """
-You are an intelligent assistant capable of generating software test cases with the supplied flow diagram. 
-Analyse this flow diagram and generate software test cases based on this image.
-"""
-
 # Dropdown for format selection
-format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD', 'Azure Template', 'Jira Template'])
+format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD', 'Azure Template', 'Jira Template', 'Test Rail Template'])
 
 # Button to generate test cases
 if st.button('Generate Test Cases'):
@@ -75,6 +75,10 @@ if st.button('Generate Test Cases'):
                     image_base64 = encode_image(uploaded_image)
 
                     # Add format instructions to the query
+                    query = (
+                        "You are an intelligent assistant capable of generating software test cases with the supplied flow diagram. "
+                        "Analyse this flow diagram and generate software test cases based on this image."
+                    )
                     if format_option == 'BDD':
                         query += "\n\nGenerate the test cases in Gherkin syntax."
                     elif format_option == 'NON-BDD':
@@ -91,19 +95,18 @@ if st.button('Generate Test Cases'):
                             "Description, Test Name, Test Step, Test Data, and Expected Result. "
                             "Ensure each test case contains more than one test step."
                         )
+                    elif format_option == 'Test Rail Template':
+                        query += (
+                            "\n\nGenerate the test cases in a tabular format with the following columns: "
+                            "Title, Section, Milestone, Precondition, Step Description, Additional Step Description, and Expected Result. "
+                            "For the steps, ensure they include detailed Step Description, Additional Step Information, and Expected Result."
+                        )
 
                     response = openai.ChatCompletion.create(
                         model="gpt-4-turbo",
                         messages=[
-                            {
-                                "role": "user",
-                                "content": [
-                                    {"type": "text", "text": query},
-                                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_base64}"}}
-                                ]
-                            }
-                        ],
-                        max_tokens=1300
+                            {"role": "user", "content": query}
+                        ]
                     )
                     test_cases = response.choices[0].message['content']
                 else:
