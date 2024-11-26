@@ -42,7 +42,7 @@ def generate_test_cases(requirement, format_option):
         requirement += (
             "\n\nGenerate the test cases in a tabular format with the following columns: "
             "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)"
-            "For the steps, ensure they include detailed Step Description, Additional Step Information, and Expected Result."
+            "For the steps, ensure they dont have <br> tags"
         )
 
     # Call OpenAI API
@@ -99,7 +99,7 @@ if st.button('Generate Test Cases'):
                         query += (
                             "\n\nGenerate the test cases in a tabular format with the following columns: "
                             "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)"
-                            "For the steps, ensure they include detailed Step Description, Additional Step Information, and Expected Result."
+                            "For the steps, ensure they dont have <br> tags & nclude detailed Step Description, Additional Step Information, and Expected Result."
                         )
 
                     response = openai.ChatCompletion.create(
