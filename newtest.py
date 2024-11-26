@@ -63,6 +63,12 @@ def encode_image(image):
 requirement = st.text_area("Requirement", height=150) if test_case_source == 'Text Input' else None
 uploaded_image = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"]) if test_case_source == 'Uploaded Image' else None
 
+# Query for image-based test cases
+query = """
+You are an intelligent assistant capable of generating software test cases with the supplied flow diagram. 
+Analyse this flow diagram and generate software test cases based on this image.
+"""
+
 # Dropdown for format selection
 format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD', 'Azure Template', 'Jira Template', 'Test Rail Template'])
 
