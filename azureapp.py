@@ -113,17 +113,24 @@ if st.button('Generate Test Cases'):
                 rows = [line.strip() for line in test_cases.split('\n') if line.strip()]
 
                 # Handle different formats
-                if format_option == 'Test Case Template' and template_type == 'Jira Template':
-                    columns = ['Test Case Number', 'Test Case Description', 'Expected Result', 'Actual Result', 'Status', 'Notes']
-                elif format_option == 'Test Case Template' and template_type == 'Azure Template':
-                    columns = ['Title', 'Order', 'Test Case ID', 'Assigned To', 'State']
+                if format_option == 'Test Case Template':
+                    if template_type == 'Jira Template':
+                        columns = ['Test Case ID', 'Test Case Description', 'Expected Result', 'Actual Result', 'Execution Status', 'Bug Severity']
+                    elif template_type == 'Azure Template':
+                        columns = ['Title', 'Order', 'Test Case ID', 'Assigned To', 'State']
 
+                    # Create DataFrame
+                    try:
+                        df = pd.DataFrame([row.split(',') for row in rows], columns=columns)
 
-                    # Provide a download link for the DataFrame as an Excel file
-                    download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
-                    st.markdown(download_link, unsafe_allow_html=True)
+                        # Provide a download link for the DataFrame as an Excel file
+                        download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
+                        st.markdown(download_link, unsafe_allow_html=True)
+                    except Exception as e:
+                        st.error("Unable to create the DataFrame. Please check the test case output format.")
+                        st.error(e)
                 else:
-                    st.error('Mismatch between data and column headers. Please check the generated data format.')
+                    st.write(test_cases)
 
             except Exception as e:
                 st.error('An error occurred while generating test cases.')
