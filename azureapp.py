@@ -45,13 +45,11 @@ def generate_test_cases(requirement, format_option, template_type=None):
 def encode_image(image):
     return base64.b64encode(image.read()).decode('utf-8')
 
-# Function to create a downloadable Excel file
-def create_download_link(dataframe, filename):
-    towrite = BytesIO()
-    dataframe.to_excel(towrite, index=False, engine='openpyxl')
-    towrite.seek(0)
-    b64 = base64.b64encode(towrite.read()).decode()
-    link = f'<a href="data:file/xlsx;base64,{b64}" download="{filename}.xlsx">Download {filename}</a>'
+# Function to create a downloadable csv file
+def create_download_link_csv(dataframe, filename):
+    csv_data = dataframe.to_csv(index=False)
+    b64 = base64.b64encode(csv_data.encode()).decode()  # Encode the CSV to base64
+    link = f'<a href="data:file/csv;base64,{b64}" download="{filename}.csv">Download {filename}</a>'
     return link
 
 # Text area for user to enter the software requirement
@@ -116,7 +114,7 @@ if st.button('Generate Test Cases'):
                 df = pd.DataFrame(rows)
 
                 # Provide a download link for the DataFrame as an Excel file
-                download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
+                download_link = create_download_link_csv(df, f"{template_type.replace(' ', '_')}_Test_Cases")
                 st.markdown(download_link, unsafe_allow_html=True)
 
             except Exception as e:
