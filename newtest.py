@@ -3,7 +3,6 @@ import openai
 import os
 import base64
 import pandas as pd
-from io import BytesIO
 
 # Retrieve the API key from the environment variable
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -62,15 +61,31 @@ def generate_test_cases(requirement, format_option):
 def encode_image(image):
     return base64.b64encode(image.read()).decode('utf-8')
 
+# Function to create a downloadable CSV file
+def create_download_link_csv(test_cases, filename):
+    """
+    Create a downloadable link for the test cases as a CSV file.
+
+    Args:
+        test_cases (str): The raw test case output from the OpenAI API.
+        filename (str): The name of the file (without extension).
+
+    Returns:
+        str: An HTML link to download the file.
+    """
+    # Split lines and parse dynamically into a DataFrame
+    rows = [line.split(',') for line in test_cases.split('\n') if line.strip()]
+    df = pd.DataFrame(rows)
+
+    # Convert the DataFrame to CSV
+    csv_data = df.to_csv(index=False, header=False)
+    b64 = base64.b64encode(csv_data.encode()).decode()  # Encode the CSV as base64
+    link = f'<a href="data:file/csv;base64,{b64}" download="{filename}.csv">Download {filename}</a>'
+    return link
+
 # Input for text-based or image-based test case generation
 requirement = st.text_area("Requirement", height=150) if test_case_source == 'Text Input' else None
 uploaded_image = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"]) if test_case_source == 'Uploaded Image' else None
-
-# Query for image-based test cases
-query = """
-You are an intelligent assistant capable of generating software test cases with the supplied flow diagram. 
-Analyse this flow diagram and generate software test cases based on this image.
-"""
 
 # Dropdown for format selection
 format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD', 'Azure Template', 'Jira Template', 'Test Rail Template'])
@@ -114,7 +129,7 @@ if st.button('Generate Test Cases'):
 
                     response = openai.ChatCompletion.create(
                         model="gpt-4-turbo",
-                          messages=[
+                        messages=[
                             {
                                 "role": "user",
                                 "content": [
@@ -131,6 +146,10 @@ if st.button('Generate Test Cases'):
 
                 st.success('Generated Test Cases')
                 st.write(test_cases)
+
+                # Create and display the download link
+                download_link = create_download_link_csv(test_cases, "test_cases")
+                st.markdown(download_link, unsafe_allow_html=True)
 
             except Exception as e:
                 st.error('An error occurred while generating test cases.')
