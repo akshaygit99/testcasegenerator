@@ -75,7 +75,7 @@ def create_download_link_csv(test_cases, filename):
     """
     # Split lines and parse dynamically into a DataFrame
     rows = [line.strip().split(',') for line in test_cases.split('\n') if line.strip()]
-    df = pd.DataFrame(rows, columns=headers)
+    df = pd.DataFrame(rows)
 
     # Convert the DataFrame to CSV
     csv_data = df.to_csv(index=False, header=False)
