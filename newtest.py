@@ -3,6 +3,7 @@ import openai
 import os
 import base64
 import pandas as pd
+from io import BytesIO
 
 # Retrieve the API key from the environment variable
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -59,24 +60,7 @@ def generate_test_cases(requirement, format_option):
 def encode_image(image):
     return base64.b64encode(image.read()).decode('utf-8')
 
-# Function to create a downloadable Excel or CSV file based on the template
-def create_download_link(test_cases, filename, format_option):
-    """
-    Create a downloadable link for the test cases as a CSV or Excel file.
-
-    Args:
-        test_cases (str): The raw test case output from the OpenAI API.
-        filename (str): The name of the file (without extension).
-        format_option (str): The selected template format.
-
-    Returns:
-        str: An HTML link to download the file.
-    """
-    # Split lines and parse dynamically into a DataFrame
-    rows = [line.strip().split(',') for line in test_cases.split('\n') if line.strip()]
-    df = pd.DataFrame(rows)
-
-   # Function to create a downloadable link for Excel/CSV files
+# Function to create a downloadable link for Excel files
 def create_download_link(dataframe, filename):
     towrite = BytesIO()
     dataframe.to_excel(towrite, index=False, engine='openpyxl')
@@ -149,7 +133,11 @@ if st.button('Generate Test Cases'):
                 st.success('Generated Test Cases')
                 st.write(test_cases)
 
-               # Generate the downloadable file based on the format option
+                # Split lines and parse dynamically into a DataFrame
+                rows = [line.strip().split(',') for line in test_cases.split('\n') if line.strip()]
+                df = pd.DataFrame(rows)
+
+                # Generate the downloadable file based on the format option
                 if format_option in ['Azure Template', 'Jira Template']:
                     download_link = create_download_link(df, "test_cases")
                 else:
