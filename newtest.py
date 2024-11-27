@@ -145,7 +145,7 @@ if st.button('Generate Test Cases'):
                 df = pd.DataFrame(rows)
 
                 # Provide a download link for the DataFrame as an Excel file
-                download_link = create_download_link_csv(df, f"{template_type.replace(' ', '_')}_Test_Cases")
+                download_link = create_download_link_csv(df)
                 st.markdown(download_link, unsafe_allow_html=True)
 
             except Exception as e:
