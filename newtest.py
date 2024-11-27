@@ -37,6 +37,7 @@ def generate_test_cases(requirement, format_option):
             "\n\nGenerate the test cases in a tabular format with the following columns: "
             "Description, Test Name, Test Step, Test Data, and Expected Result. "
             "Ensure each test case contains more than one test step."
+            "For the steps, ensure they dont have <br> tags"
         )
     elif format_option == 'Test Rail Template':
         requirement += (
@@ -100,6 +101,7 @@ if st.button('Generate Test Cases'):
                             "\n\nGenerate the test cases in a tabular format with the following columns: "
                             "Description, Test Name, Test Step, Test Data, and Expected Result. "
                             "Ensure each test case contains more than one test step."
+                            "For the steps, ensure they dont have <br> tags"
                         )
                     elif format_option == 'Test Rail Template':
                         query += (
