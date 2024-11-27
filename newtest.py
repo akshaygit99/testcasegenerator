@@ -77,7 +77,7 @@ def create_download_link(test_cases, filename, format_option):
     df = pd.DataFrame(rows)
 
    # Function to create a downloadable link for Excel/CSV files
-  def create_download_link(dataframe, filename):
+def create_download_link(dataframe, filename):
     towrite = BytesIO()
     dataframe.to_excel(towrite, index=False, engine='openpyxl')
     towrite.seek(0)
