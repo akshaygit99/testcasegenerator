@@ -3,6 +3,7 @@ import openai
 import os
 import base64
 import pandas as pd
+from io import BytesIO
 
 # Retrieve the API key from the environment variable
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -31,29 +32,29 @@ def generate_test_cases(requirement, format_option):
         requirement += (
             "\n\nGenerate the test cases in a tabular format with the following columns: "
             "ID (leave this column empty), Work Item Type (set to 'Test Case'), Title, Test Step, Step Action, and Step Expected. "
-            "Ensure each test case contains more than one test step."
+            "Ensure each test case contains more than one test step and no <br> tags."
         )
     elif format_option == 'Jira Template':
         requirement += (
             "\n\nGenerate the test cases in a tabular format with the following columns: "
             "Description, Test Name, Test Step, Test Data, and Expected Result. "
-            "Ensure each test case contains more than one test step."
-            "For the steps, ensure they dont have <br> tags"
+            "Ensure each test case contains more than one test step and no <br> tags."
         )
     elif format_option == 'Test Rail Template':
         requirement += (
             "\n\nGenerate the test cases in a tabular format with the following columns: "
-            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)"
-            "For the steps, ensure they dont have <br> tags"
+            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info). "
+            "Ensure each test case contains more than one test step and no <br> tags."
         )
 
     # Call OpenAI API
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant capable of generating software test cases."},
-            {"role": "user", "content": requirement}
-        ]
+        messages=[{
+            "role": "system", "content": "You are a helpful assistant capable of generating software test cases."
+        }, {
+            "role": "user", "content": requirement
+        }]
     )
     return response.choices[0].message['content']
 
@@ -68,7 +69,7 @@ def create_download_link_csv(test_cases, filename):
 
     Args:
         test_cases (str): The raw test case output from the OpenAI API.
-        filename (str): The name of the file (without extension).
+        filename (str): The name of the file (without extension). 
 
     Returns:
         str: An HTML link to download the file.
@@ -78,9 +79,36 @@ def create_download_link_csv(test_cases, filename):
     df = pd.DataFrame(rows)
 
     # Convert the DataFrame to CSV
-    csv_data = df.to_csv(index=False, header=False)
+    csv_data = df.to_csv(index=False, header=True)  # Ensure header is included
     b64 = base64.b64encode(csv_data.encode()).decode()  # Encode the CSV as base64
     link = f'<a href="data:file/csv;base64,{b64}" download="{filename}.csv">Download {filename}</a>'
+    return link
+
+# Function to create a downloadable XLSX file
+def create_download_link_xlsx(test_cases, filename):
+    """
+    Create a downloadable link for the test cases as an XLSX file.
+
+    Args:
+        test_cases (str): The raw test case output from the OpenAI API.
+        filename (str): The name of the file (without extension).
+
+    Returns:
+        str: An HTML link to download the file.
+    """
+    # Split lines and parse dynamically into a DataFrame
+    rows = [line.strip().split(',') for line in test_cases.split('\n') if line.strip()]
+    df = pd.DataFrame(rows)
+
+    # Save DataFrame as an Excel file in-memory
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        df.to_excel(writer, index=False, header=True)
+        writer.save()
+
+    output.seek(0)
+    b64 = base64.b64encode(output.read()).decode()  # Encode the XLSX as base64
+    link = f'<a href="data:file/xlsx;base64,{b64}" download="{filename}.xlsx">Download {filename}</a>'
     return link
 
 # Input for text-based or image-based test case generation
@@ -101,7 +129,7 @@ if st.button('Generate Test Cases'):
                     # Add format instructions to the query
                     query = (
                         "You are an intelligent assistant capable of generating software test cases with the supplied flow diagram. "
-                        "Analyse this flow diagram and generate software test cases based on this image."
+                        "Analyse this flow diagram and generate software test cases based on this image, ensuring no <br> tags in the steps."
                     )
                     if format_option == 'BDD':
                         query += "\n\nGenerate the test cases in Gherkin syntax."
@@ -111,33 +139,27 @@ if st.button('Generate Test Cases'):
                         query += (
                             "\n\nGenerate the test cases in a tabular format with the following columns: "
                             "ID (leave this column empty), Work Item Type (set to 'Test Case'), Title, Test Step, Step Action, and Step Expected. "
-                            "Ensure each test case contains more than one test step."
+                            "Ensure each test case contains more than one test step and no <br> tags."
                         )
                     elif format_option == 'Jira Template':
                         query += (
                             "\n\nGenerate the test cases in a tabular format with the following columns: "
                             "Description, Test Name, Test Step, Test Data, and Expected Result. "
-                            "Ensure each test case contains more than one test step."
-                            "For the steps, ensure they dont have <br> tags"
+                            "Ensure each test case contains more than one test step and no <br> tags."
                         )
                     elif format_option == 'Test Rail Template':
                         query += (
                             "\n\nGenerate the test cases in a tabular format with the following columns: "
-                            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)"
-                            "For the steps, ensure they dont have <br> tags"
+                            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info). "
+                            "Ensure each test case contains more than one test step and no <br> tags."
                         )
 
                     response = openai.ChatCompletion.create(
                         model="gpt-4-turbo",
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": [
-                                    {"type": "text", "text": query},
-                                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_base64}"}}
-                                ]
-                            }
-                        ]
+                        messages=[{
+                            "role": "user",
+                            "content": query
+                        }]
                     )
                     test_cases = response.choices[0].message['content']
                 else:
@@ -147,8 +169,12 @@ if st.button('Generate Test Cases'):
                 st.success('Generated Test Cases')
                 st.write(test_cases)
 
-                # Create and display the download link
-                download_link = create_download_link_csv(test_cases, "test_cases")
+                # Create and display the download link based on the format
+                if format_option in ['Azure Template', 'Jira Template']:
+                    download_link = create_download_link_xlsx(test_cases, "test_cases")
+                elif format_option == 'Test Rail Template':
+                    download_link = create_download_link_csv(test_cases, "test_cases")
+                
                 st.markdown(download_link, unsafe_allow_html=True)
 
             except Exception as e:
