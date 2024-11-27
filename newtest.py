@@ -2,6 +2,8 @@ import streamlit as st
 import openai
 import os
 import base64
+import pandas as pd
+from io import BytesIO
 
 # Retrieve the API key from the environment variable
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
