@@ -76,19 +76,13 @@ def create_download_link(test_cases, filename, format_option):
     rows = [line.strip().split(',') for line in test_cases.split('\n') if line.strip()]
     df = pd.DataFrame(rows)
 
-    # Save the DataFrame to either CSV or Excel based on the format
-    if format_option in ['Azure Template', 'Jira Template']:
-        # Save to Excel for Azure and Jira templates
-        excel_data = df.to_excel(index=False, header=True)  # Save to Excel with header
-        b64 = base64.b64encode(excel_data).decode()  # Encode the Excel as base64
-        file_extension = "xlsx"
-    else:
-        # Save to CSV for Test Rail template
-        csv_data = df.to_csv(index=False, header=False)  # Save to CSV without header
-        b64 = base64.b64encode(csv_data.encode()).decode()  # Encode the CSV as base64
-        file_extension = "csv"
-
-    link = f'<a href="data:file/{file_extension};base64,{b64}" download="{filename}.{file_extension}">Download {filename}</a>'
+   # Function to create a downloadable link for Excel/CSV files
+  def create_download_link(dataframe, filename):
+    towrite = BytesIO()
+    dataframe.to_excel(towrite, index=False, engine='openpyxl')
+    towrite.seek(0)
+    b64 = base64.b64encode(towrite.read()).decode()
+    link = f'<a href="data:file/xlsx;base64,{b64}" download="{filename}.xlsx">Download {filename}</a>'
     return link
 
 # Input for text-based or image-based test case generation
@@ -155,8 +149,15 @@ if st.button('Generate Test Cases'):
                 st.success('Generated Test Cases')
                 st.write(test_cases)
 
-                # Create and display the download link
-                download_link = create_download_link(test_cases, "test_cases", format_option)
+               # Generate the downloadable file based on the format option
+                if format_option in ['Azure Template', 'Jira Template']:
+                    download_link = create_download_link(df, "test_cases")
+                else:
+                    # For Test Rail Template (CSV)
+                    csv_data = df.to_csv(index=False, header=False)  # Save to CSV without header
+                    b64 = base64.b64encode(csv_data.encode()).decode()
+                    download_link = f'<a href="data:file/csv;base64,{b64}" download="test_cases.csv">Download test_cases.csv</a>'
+
                 st.markdown(download_link, unsafe_allow_html=True)
 
             except Exception as e:
