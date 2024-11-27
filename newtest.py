@@ -60,6 +60,12 @@ def generate_test_cases(requirement, format_option):
 def encode_image(image):
     return base64.b64encode(image.read()).decode('utf-8')
 
+def create_download_link_csv(dataframe, filename):
+    csv_data = dataframe.to_csv(index=False)
+    b64 = base64.b64encode(csv_data.encode()).decode()  # Encode the CSV to base64
+    link = f'<a href="data:file/csv;base64,{b64}" download="{filename}.csv">Download {filename}</a>'
+    return link
+
 # Input for text-based or image-based test case generation
 requirement = st.text_area("Requirement", height=150) if test_case_source == 'Text Input' else None
 uploaded_image = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"]) if test_case_source == 'Uploaded Image' else None
@@ -129,6 +135,16 @@ if st.button('Generate Test Cases'):
 
                 st.success('Generated Test Cases')
                 st.write(test_cases)
+
+          # Split the generated test cases into rows for the DataFrame
+                rows = [line.strip().split(',') for line in test_cases.split('\n') if line.strip()]
+
+                # Create DataFrame without enforcing column count
+                df = pd.DataFrame(rows)
+
+                # Provide a download link for the DataFrame as an Excel file
+                download_link = create_download_link_csv(df, f"{template_type.replace(' ', '_')}_Test_Cases")
+                st.markdown(download_link, unsafe_allow_html=True)
 
             except Exception as e:
                 st.error('An error occurred while generating test cases.')
