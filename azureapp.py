@@ -118,14 +118,6 @@ if st.button('Generate Test Cases'):
                 elif format_option == 'Test Case Template' and template_type == 'Azure Template':
                     columns = ['Title', 'Order', 'Test Case ID', 'Assigned To', 'State']
 
-                # Ensure the number of columns matches the data by splitting properly
-                # Assuming rows contain data separated by a delimiter like '|'
-                data = [row.split('|') for row in rows]
-
-                # Check if the data has the correct number of columns
-                if all(len(row) == len(columns) for row in data):
-                    df = pd.DataFrame(data, columns=columns)
-                    st.dataframe(df)
 
                     # Provide a download link for the DataFrame as an Excel file
                     download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
