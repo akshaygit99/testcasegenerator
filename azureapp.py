@@ -28,7 +28,7 @@ def generate_test_cases(requirement, format_option, template_type=None):
         requirement += "\n\nGenerate the test cases in plain text format."
     elif format_option == 'Test Case Template' and template_type:
         if template_type == 'Jira Template':
-            requirement += "\n\n Create test cases with column name as test case id , test case  description , expected result , actual result, execution status, bug severity"
+            requirement += "\n\n Create test cases with column names: Test Case ID, Test Case Description, Expected Result, Actual Result, Execution Status, Bug Severity."
         elif template_type == 'Azure Template':
             requirement += "\n\nGenerate test cases in tabular format with columns: Title, Order, Test Case ID, Assigned To, State."
 
@@ -86,7 +86,7 @@ if st.button('Generate Test Cases'):
                     elif format_option == 'NON-BDD':
                         query += "\n\nGenerate the test cases in plain text format."
                     elif format_option == 'Test Case Template' and template_type == 'Jira Template':
-                        query += "\n\nCreate test cases with column name as test case id , test case  description , expected result , actual result, execution status, bug severity"
+                        query += "\n\nCreate test cases with column names: Test Case ID, Test Case Description, Expected Result, Actual Result, Execution Status, Bug Severity."
                     elif format_option == 'Test Case Template' and template_type == 'Azure Template':
                         query += "\n\nGenerate test cases in tabular format with columns: Title, Order, Test Case ID, Assigned To, State."
 
@@ -110,27 +110,14 @@ if st.button('Generate Test Cases'):
                 st.write(test_cases)
 
                 # Split the generated test cases into rows for the DataFrame
-                rows = [line.strip() for line in test_cases.split('\n') if line.strip()]
+                rows = [line.strip().split(',') for line in test_cases.split('\n') if line.strip()]
 
-                # Handle different formats
-                if format_option == 'Test Case Template':
-                    if template_type == 'Jira Template':
-                        columns = ['Test Case ID', 'Test Case Description', 'Expected Result', 'Actual Result', 'Execution Status', 'Bug Severity']
-                    elif template_type == 'Azure Template':
-                        columns = ['Title', 'Order', 'Test Case ID', 'Assigned To', 'State']
+                # Create DataFrame without enforcing column count
+                df = pd.DataFrame(rows)
 
-                    # Create DataFrame
-                    try:
-                        df = pd.DataFrame([row.split(',') for row in rows], columns=columns)
-
-                        # Provide a download link for the DataFrame as an Excel file
-                        download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
-                        st.markdown(download_link, unsafe_allow_html=True)
-                    except Exception as e:
-                        st.error("Unable to create the DataFrame. Please check the test case output format.")
-                        st.error(e)
-                else:
-                    st.write(test_cases)
+                # Provide a download link for the DataFrame as an Excel file
+                download_link = create_download_link(df, f"{template_type.replace(' ', '_')}_Test_Cases")
+                st.markdown(download_link, unsafe_allow_html=True)
 
             except Exception as e:
                 st.error('An error occurred while generating test cases.')
