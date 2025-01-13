@@ -85,6 +85,7 @@ def generate_test_cases(requirement, format_option):
             "\n\nGenerate the test cases in a tabular format with the following columns: "
             "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)"
             "For the steps, ensure they dont have <br> tags"
+        )
             
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
