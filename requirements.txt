@@ -2,3 +2,6 @@
 streamlit
 openpyxl
 xlsxwriter
+flask==3.0.0       # Flask for middleware
+werkzeug==3.0.0    # Required for Flask routing
+
