@@ -64,7 +64,7 @@ test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploade
 # Define the function to generate test cases
 def generate_test_cases(requirement, format_option):
    
-        if format_option == 'BDD':
+    if format_option == 'BDD':
         requirement += "\n\nGenerate the test cases in Gherkin syntax."
     elif format_option == 'NON-BDD':
         requirement += "\n\nGenerate the test cases in plain text format."
