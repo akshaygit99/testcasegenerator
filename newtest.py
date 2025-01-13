@@ -94,6 +94,10 @@ def generate_test_cases(requirement, format_option):
     )
     return response.choices[0].message['content']
 
+# Function to encode the image
+def encode_image(image):
+    return base64.b64encode(image.read()).decode('utf-8')
+
 # Input for text-based or image-based test case generation
 requirement = st.text_area("Requirement", height=150) if test_case_source == 'Text Input' else None
 uploaded_image = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"]) if test_case_source == 'Uploaded Image' else None
