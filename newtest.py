@@ -63,14 +63,15 @@ test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploade
 
 # Define the function to generate test cases
 def generate_test_cases(requirement, format_option):
-    if format_option == 'BDD':
+   
+        if format_option == 'BDD':
         requirement += "\n\nGenerate the test cases in Gherkin syntax."
     elif format_option == 'NON-BDD':
         requirement += "\n\nGenerate the test cases in plain text format."
     elif format_option == 'Azure Template':
         requirement += (
             "\n\nGenerate the test cases in a tabular format with the following columns: "
-            "ID (leave this column empty), Work Item Type (set to 'Test Case'), Title, Test Step, Step Action, and Step Expected. "
+            "Keep ID Column blank always, Work Item Type (set to 'Test Case'), Title, Test Step, Step Action, and Step Expected. "
             "Ensure each test case contains more than one test step."
         )
     elif format_option == 'Jira Template':
@@ -82,8 +83,9 @@ def generate_test_cases(requirement, format_option):
     elif format_option == 'Test Rail Template':
         requirement += (
             "\n\nGenerate the test cases in a tabular format with the following columns: "
-            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)."
-        )
+            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)"
+            "For the steps, ensure they dont have <br> tags"
+            
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
         messages=[{"role": "system", "content": "You are a helpful assistant capable of generating software test cases."},
@@ -104,10 +106,12 @@ if st.button('Generate Test Cases'):
         with st.spinner('Generating...'):
             try:
                 if test_case_source == 'Uploaded Image' and uploaded_image:
-                    image_base64 = base64.b64encode(uploaded_image.read()).decode('utf-8')
+                    image_base64 = encode_image(uploaded_image)
+
+                    # Add format instructions to the query
                     query = (
-                        "You are an intelligent assistant capable of generating software test cases based on the supplied flow diagram. "
-                        "Analyze this flow diagram and generate software test cases based on the image provided."
+                        "You are an intelligent assistant capable of generating software test cases with the supplied flow diagram. "
+                        "Analyse this flow diagram and generate software test cases based on this image."
                     )
                     if format_option == 'BDD':
                         query += "\n\nGenerate the test cases in Gherkin syntax."
@@ -116,18 +120,22 @@ if st.button('Generate Test Cases'):
                     elif format_option == 'Azure Template':
                         query += (
                             "\n\nGenerate the test cases in a tabular format with the following columns: "
-                            "ID, Work Item Type, Title, Test Step, Step Action, and Step Expected."
+                            "Keep ID Column blank always, Work Item Type (set to 'Test Case'), Title, Test Step, Step Action, and Step Expected. "
+                            "Ensure each test case contains more than one test step."
                         )
                     elif format_option == 'Jira Template':
                         query += (
                             "\n\nGenerate the test cases in a tabular format with the following columns: "
-                            "Description, Test Name, Test Step, Test Data, Expected Result."
+                            "Description, Test Name, Test Step, Test Data, and Expected Result. "
+                            "Ensure each test case contains more than one test step."
                         )
                     elif format_option == 'Test Rail Template':
                         query += (
                             "\n\nGenerate the test cases in a tabular format with the following columns: "
-                            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)."
+                            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)"
+                            "For the steps, ensure they dont have <br> tags"
                         )
+
 
                     # OpenAI ChatCompletion API call
                     response = openai.ChatCompletion.create(
