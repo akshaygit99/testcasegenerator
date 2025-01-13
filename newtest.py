@@ -134,6 +134,8 @@ if st.button('Generate Test Cases'):
                         model="gpt-4-turbo",
                         messages=[
                             {"role": "user", "content": query},
+                            {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_base64}"}}
+
                         ]
                     )
                     test_cases = response.choices[0].message['content']
