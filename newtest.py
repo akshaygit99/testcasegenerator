@@ -15,6 +15,8 @@ flask_app = Flask(__name__)
 @flask_app.route('/')
 def log_ip():
     client_ip = request.remote_addr
+    with open("client_ips.log", "a") as log_file:
+        log_file.write(f"{client_ip}\n")
     return f"Client IP Address: {client_ip}"
 
 # Function to run Flask app
@@ -22,7 +24,7 @@ def run_flask():
     flask_dispatch = DispatcherMiddleware(flask_app)
     run_simple('0.0.0.0', 5000, flask_dispatch, use_reloader=False)
 
-# Function to start the Flask app in a separate thread
+# Start Flask app in a separate thread
 flask_thread = threading.Thread(target=run_flask)
 flask_thread.daemon = True
 flask_thread.start()
@@ -39,6 +41,22 @@ st.markdown("""
 <span style='color: #fdb825'>))</span></h1>
 <p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements <b>powered by OpenAI</b>. It's designed to streamline your testing process and improve efficiency.</p>
 """, unsafe_allow_html=True)
+
+# Sidebar Section for Downloading Client Logs
+st.sidebar.title("Client Logs")
+if os.path.exists("client_ips.log"):
+    with open("client_ips.log", "r") as log_file:
+        logs = log_file.read()
+    
+    # Add a download button to the sidebar
+    st.sidebar.download_button(
+        label="Download Client Logs",
+        data=logs,
+        file_name="client_ips.log",
+        mime="text/plain",
+    )
+else:
+    st.sidebar.write("No client logs available yet.")
 
 # Checkbox to choose between Text or Image-based test cases
 test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploaded Image'))
@@ -60,13 +78,11 @@ def generate_test_cases(requirement, format_option):
             "\n\nGenerate the test cases in a tabular format with the following columns: "
             "Description, Test Name, Test Step, Test Data, and Expected Result. "
             "Ensure each test case contains more than one test step."
-            "For the steps, ensure they don’t have <br> tags."
         )
     elif format_option == 'Test Rail Template':
         requirement += (
             "\n\nGenerate the test cases in a tabular format with the following columns: "
-            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info). "
-            "For the steps, ensure they don’t have <br> tags."
+            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)."
         )
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
