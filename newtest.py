@@ -4,8 +4,30 @@ import os
 import base64
 import pandas as pd
 from io import BytesIO
+from flask import Flask, request
+import threading
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from werkzeug.serving import run_simple
 
-# Retrieve the API key from the environment variable
+# Flask App for Capturing Client IP
+flask_app = Flask(__name__)
+
+@flask_app.route('/')
+def log_ip():
+    client_ip = request.remote_addr
+    return f"Client IP Address: {client_ip}"
+
+# Function to run Flask app
+def run_flask():
+    flask_dispatch = DispatcherMiddleware(flask_app)
+    run_simple('0.0.0.0', 5000, flask_dispatch, use_reloader=False)
+
+# Function to start the Flask app in a separate thread
+flask_thread = threading.Thread(target=run_flask)
+flask_thread.daemon = True
+flask_thread.start()
+
+# Retrieve the OpenAI API key from environment variable
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 openai.api_key = OPENAI_API_KEY
 
@@ -15,7 +37,7 @@ st.markdown("""
 <span style='color: #fdb825'>((</span>
              CENTRIC 
 <span style='color: #fdb825'>))</span></h1>
-<p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements <b> powered by Open AI </b>. It's designed to streamline your testing process and improve efficiency.</p>
+<p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements <b>powered by OpenAI</b>. It's designed to streamline your testing process and improve efficiency.</p>
 """, unsafe_allow_html=True)
 
 # Checkbox to choose between Text or Image-based test cases
@@ -23,7 +45,6 @@ test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploade
 
 # Define the function to generate test cases
 def generate_test_cases(requirement, format_option):
-    # Append additional instructions based on format
     if format_option == 'BDD':
         requirement += "\n\nGenerate the test cases in Gherkin syntax."
     elif format_option == 'NON-BDD':
@@ -39,35 +60,20 @@ def generate_test_cases(requirement, format_option):
             "\n\nGenerate the test cases in a tabular format with the following columns: "
             "Description, Test Name, Test Step, Test Data, and Expected Result. "
             "Ensure each test case contains more than one test step."
-            "For the steps, ensure they dont have <br> tags"
+            "For the steps, ensure they don’t have <br> tags."
         )
     elif format_option == 'Test Rail Template':
         requirement += (
             "\n\nGenerate the test cases in a tabular format with the following columns: "
-            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)"
-            "For the steps, ensure they dont have <br> tags"
+            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info). "
+            "For the steps, ensure they don’t have <br> tags."
         )
-
-    # Call OpenAI API
     response = openai.ChatCompletion.create(
         model="gpt-4-turbo",
         messages=[{"role": "system", "content": "You are a helpful assistant capable of generating software test cases."},
                   {"role": "user", "content": requirement}]
     )
     return response.choices[0].message['content']
-
-# Function to encode the image
-def encode_image(image):
-    return base64.b64encode(image.read()).decode('utf-8')
-
-# Function to create a downloadable link for Excel files
-def create_download_link(dataframe, filename):
-    towrite = BytesIO()
-    dataframe.to_excel(towrite, index=False, engine='openpyxl')
-    towrite.seek(0)
-    b64 = base64.b64encode(towrite.read()).decode()
-    link = f'<a href="data:file/xlsx;base64,{b64}" download="{filename}.xlsx">Download {filename}</a>'
-    return link
 
 # Input for text-based or image-based test case generation
 requirement = st.text_area("Requirement", height=150) if test_case_source == 'Text Input' else None
@@ -82,12 +88,10 @@ if st.button('Generate Test Cases'):
         with st.spinner('Generating...'):
             try:
                 if test_case_source == 'Uploaded Image' and uploaded_image:
-                    image_base64 = encode_image(uploaded_image)
-
-                    # Add format instructions to the query
+                    image_base64 = base64.b64encode(uploaded_image.read()).decode('utf-8')
                     query = (
-                        "You are an intelligent assistant capable of generating software test cases with the supplied flow diagram. "
-                        "Analyse this flow diagram and generate software test cases based on this image."
+                        "You are an intelligent assistant capable of generating software test cases based on the supplied flow diagram. "
+                        "Analyze this flow diagram and generate software test cases based on the image provided."
                     )
                     if format_option == 'BDD':
                         query += "\n\nGenerate the test cases in Gherkin syntax."
@@ -96,60 +100,44 @@ if st.button('Generate Test Cases'):
                     elif format_option == 'Azure Template':
                         query += (
                             "\n\nGenerate the test cases in a tabular format with the following columns: "
-                            "ID (leave this column empty), Work Item Type (set to 'Test Case'), Title, Test Step, Step Action, and Step Expected. "
-                            "Ensure each test case contains more than one test step."
+                            "ID, Work Item Type, Title, Test Step, Step Action, and Step Expected."
                         )
                     elif format_option == 'Jira Template':
                         query += (
                             "\n\nGenerate the test cases in a tabular format with the following columns: "
-                            "Description, Test Name, Test Step, Test Data, and Expected Result. "
-                            "Ensure each test case contains more than one test step."
-                            "For the steps, ensure they dont have <br> tags"
+                            "Description, Test Name, Test Step, Test Data, Expected Result."
                         )
                     elif format_option == 'Test Rail Template':
                         query += (
                             "\n\nGenerate the test cases in a tabular format with the following columns: "
-                            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)"
-                            "For the steps, ensure they dont have <br> tags"
+                            "Title, Automated?, Automation Type, Expected Result, Preconditions, Priority, References, Section, Steps, Steps (Additional Info)."
                         )
 
+                    # OpenAI ChatCompletion API call
                     response = openai.ChatCompletion.create(
                         model="gpt-4-turbo",
                         messages=[
-                            {
-                                "role": "user",
-                                "content": [
-                                    {"type": "text", "text": query},
-                                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{image_base64}"}}
-                                ]
-                            }
+                            {"role": "user", "content": query},
                         ]
                     )
                     test_cases = response.choices[0].message['content']
                 else:
-                    # Generate from text input
                     test_cases = generate_test_cases(requirement, format_option)
 
                 st.success('Generated Test Cases')
                 st.write(test_cases)
 
-                # Split lines and parse dynamically into a DataFrame
-                rows = [line.strip().split(',') for line in test_cases.split('\n') if line.strip()]
+                # Download link for test cases
+                rows = [line.split(',') for line in test_cases.split('\n') if line.strip()]
                 df = pd.DataFrame(rows)
-
-                # Generate the downloadable file based on the format option
-                if format_option in ['Azure Template', 'Jira Template']:
-                    download_link = create_download_link(df, "test_cases")
-                else:
-                    # For Test Rail Template (CSV)
-                    csv_data = df.to_csv(index=False, header=False)  # Save to CSV without header
-                    b64 = base64.b64encode(csv_data.encode()).decode()
-                    download_link = f'<a href="data:file/csv;base64,{b64}" download="test_cases.csv">Download test_cases.csv</a>'
-
-                st.markdown(download_link, unsafe_allow_html=True)
+                towrite = BytesIO()
+                df.to_excel(towrite, index=False, engine='openpyxl')
+                towrite.seek(0)
+                b64 = base64.b64encode(towrite.read()).decode()
+                link = f'<a href="data:file/xlsx;base64,{b64}" download="test_cases.xlsx">Download Test Cases</a>'
+                st.markdown(link, unsafe_allow_html=True)
 
             except Exception as e:
-                st.error('An error occurred while generating test cases.')
-                st.error(e)
+                st.error(f"Error: {e}")
     else:
         st.error('Please enter a requirement or upload an image to generate test cases.')
