@@ -92,7 +92,7 @@ if st.button('Generate Test Cases'):
                         query += (
                             "\n\nGenerate the test cases in a tabular format with the following columns: "
                             "Keep ID Column blank always, Work Item Type (set to 'Test Case'), Title, Test Step, Step Action, and Step Expected. "
-                            "Ensure each test case contains more than one test step."
+                            "Ensure each test case contains more than one test step. Dont give -- in reponse or after any test case. Give proper data for excel"
                         )
                     elif format_option == 'Jira Template':
                         query += (
