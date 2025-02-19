@@ -129,13 +129,25 @@ if st.button('Generate Test Cases'):
                 st.write(test_cases)
 
                # Download link for test cases
-                rows = [line.split(',') for line in test_cases.split('\n') if line.strip()]
-                df = pd.DataFrame(rows)
-                towrite = BytesIO()
-                df.to_excel(towrite, index=False, engine='openpyxl')
-                towrite.seek(0)
-                b64 = base64.b64encode(towrite.read()).decode()
-                link = f'<a href="data:file/xlsx;base64,{b64}" download="test_cases.xlsx">Download Test Cases</a>'
+                try:
+                    test_cases_lines = [line for line in test_cases.split("\n") if line.strip()] 
+                    header_index = next((i for i, line in enumerate(test_cases_lines) if "Work Item Type" in line), None)
+                    if header_index is not None:
+                        clean_data = test_cases_lines[header_index:]  # Keep only relevant rows
+                        clean_data = [line.strip("|").split("|") for line in clean_data] 
+                        df = pd.DataFrame(clean_data[1:], columns=[col.strip() for col in clean_data[0]])  # Set headers
+                        # Write to Excel
+                        towrite = BytesIO()
+                        df.to_excel(towrite, index=False, engine='openpyxl')
+                        towrite.seek(0)
+                        # Encode and create download link
+                        b64 = base64.b64encode(towrite.read()).decode()
+                        link = f'<a href="data:file/xlsx;base64,{b64}" download="test_cases.xlsx">Download Test Cases</a>'
+                        st.markdown(link, unsafe_allow_html=True)
+
+                except Exception as e:
+                    st.error(f"Error processing test cases: {e}")
+               
                 st.markdown(link, unsafe_allow_html=True)
 
             except Exception as e:
