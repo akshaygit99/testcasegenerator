@@ -128,7 +128,7 @@ if st.button('Generate Test Cases'):
                 st.success('Generated Test Cases')
                 st.write(test_cases)
 
-                # Download link for test cases
+               # Download link for test cases
                 rows = [line.split(',') for line in test_cases.split('\n') if line.strip()]
                 df = pd.DataFrame(rows)
                 towrite = BytesIO()
@@ -138,8 +138,7 @@ if st.button('Generate Test Cases'):
                 link = f'<a href="data:file/xlsx;base64,{b64}" download="test_cases.xlsx">Download Test Cases</a>'
                 st.markdown(link, unsafe_allow_html=True)
 
-except Exception as e:
-    st.error(f"Error processing test cases: {e}")
-  
-    else:
-        st.error('Please enter a requirement or upload an image to generate test cases.')
+            except Exception as e:
+                st.error(f"Error: {e}")
+            else:
+            st.error('Please enter a requirement or upload an image to generate test cases.')
