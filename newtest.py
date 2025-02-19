@@ -83,8 +83,7 @@ if st.button('Generate Test Cases'):
                     )
 
                     if additional_requirement:
-                        query += f"\n\n"Additional context: {additional_requirement}
-                        
+                        query += f"\n\nAdditional context: {additional_requirement}"
                     if format_option == 'BDD':
                         query += "\n\nGenerate the test cases in Gherkin syntax."
                     elif format_option == 'NON-BDD':
