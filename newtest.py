@@ -130,7 +130,7 @@ if st.button('Generate Test Cases'):
 
                 # Download link for test cases
 # Extract table content and clean data
-test_cases_lines = [line for line in test_cases.split("\n") if line.strip()]  # Remove empty lines
+test_cases_lines = [line for line in test_cases.split("\n") if line.strip()]
 
 # Find the index of the actual header row
 header_index = next((i for i, line in enumerate(test_cases_lines) if "Work Item Type" in line), None)
