@@ -130,7 +130,7 @@ if st.button('Generate Test Cases'):
 
                # Download link for test cases
                 try:
-                    test_cases_lines = [line for line in test_cases.split("\n") if line.strip()] 
+                    test_cases_lines = [line.strip() for line in test_cases.split("\n") if line.strip() and "---" not in line]
                     header_index = next((i for i, line in enumerate(test_cases_lines) if "Work Item Type" in line), None)
                     if header_index is not None:
                         clean_data = test_cases_lines[header_index:]  # Keep only relevant rows
