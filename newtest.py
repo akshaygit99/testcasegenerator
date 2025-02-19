@@ -63,6 +63,7 @@ def encode_image(image):
 # Input for text-based or image-based test case generation
 requirement = st.text_area("Requirement", height=150) if test_case_source == 'Text Input' else None
 uploaded_image = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg"]) if test_case_source == 'Uploaded Image' else None
+additional_requirement = st.text_area("Additional Requirement (Optional)", height=150) if test_case_source == 'Uploaded Image' else None
 
 # Dropdown for format selection
 format_option = st.selectbox('Choose Test Case Format', ['BDD', 'NON-BDD', 'Azure Template', 'Jira Template', 'Test Rail Template'])
