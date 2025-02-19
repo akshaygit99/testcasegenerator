@@ -135,7 +135,9 @@ if st.button('Generate Test Cases'):
                     if header_index is not None:
                         clean_data = test_cases_lines[header_index:]  # Keep only relevant rows
                         clean_data = [line.strip("|").split("|") for line in clean_data] 
-                        df = pd.DataFrame(clean_data[1:], columns=[col.strip() for col in clean_data[0]])  # Set headers
+                        headers = [col.strip() for col in clean_data[0]]
+                        structured_data = [row[:len(headers)] for row in clean_data[1:] if len(row) >= len(headers)]         
+                        df = pd.DataFrame(structured_data, columns=headers)  # Set headers
                         # Write to Excel
                         towrite = BytesIO()
                         df.to_excel(towrite, index=False, engine='openpyxl')
