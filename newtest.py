@@ -4,30 +4,7 @@ import os
 import base64
 import pandas as pd
 from io import BytesIO
-from flask import Flask, request
-import threading
-from werkzeug.middleware.dispatcher import DispatcherMiddleware
-from werkzeug.serving import run_simple
 
-# Flask App for Capturing Client IP
-flask_app = Flask(__name__)
-
-@flask_app.route('/')
-def log_ip():
-    client_ip = request.remote_addr
-    with open("client_ips.log", "a") as log_file:
-        log_file.write(f"{client_ip}\n")
-    return f"Client IP Address: {client_ip}"
-
-# Function to run Flask app
-def run_flask():
-    flask_dispatch = DispatcherMiddleware(flask_app)
-    run_simple('0.0.0.0', 5000, flask_dispatch, use_reloader=False)
-
-# Start Flask app in a separate thread
-flask_thread = threading.Thread(target=run_flask)
-flask_thread.daemon = True
-flask_thread.start()
 
 # Retrieve the OpenAI API key from environment variable
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
@@ -42,21 +19,6 @@ st.markdown("""
 <p style='font-size: 15px; text-align: left;'>This utility generates detailed software test cases based on user requirements <b>powered by OpenAI</b>. It's designed to streamline your testing process and improve efficiency.</p>
 """, unsafe_allow_html=True)
 
-# Sidebar Section for Downloading Client Logs
-st.sidebar.title("Client Logs")
-if os.path.exists("client_ips.log"):
-    with open("client_ips.log", "r") as log_file:
-        logs = log_file.read()
-    
-    # Add a download button to the sidebar
-    st.sidebar.download_button(
-        label="Download Client Logs",
-        data=logs,
-        file_name="client_ips.log",
-        mime="text/plain",
-    )
-else:
-    st.sidebar.write("No client logs available yet.")
 
 # Checkbox to choose between Text or Image-based test cases
 test_case_source = st.radio("Generate test cases from:", ('Text Input', 'Uploaded Image'))
