@@ -129,7 +129,6 @@ if st.button('Generate Test Cases'):
                 st.write(test_cases)
 
                 # Download link for test cases
-try:
     test_cases_lines = [line for line in test_cases.split("\n") if line.strip()]  # Remove empty lines
 
     # Find the index of the actual header row
