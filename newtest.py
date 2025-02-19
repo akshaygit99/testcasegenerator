@@ -140,5 +140,5 @@ if st.button('Generate Test Cases'):
 
             except Exception as e:
                 st.error(f"Error: {e}")
-                else:
-                  st.error('Please enter a requirement or upload an image to generate test cases.')
+    else:
+        st.error('Please enter a requirement or upload an image to generate test cases.')
