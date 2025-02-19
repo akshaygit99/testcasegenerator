@@ -81,6 +81,10 @@ if st.button('Generate Test Cases'):
                         "You are an intelligent assistant capable of generating software test cases with the supplied flow diagram. "
                         "Analyse this flow diagram and generate software test cases based on this image."
                     )
+
+                    if additional_requirement:
+                        query += f"\n\n"Additional context: {additional_requirement}
+                        
                     if format_option == 'BDD':
                         query += "\n\nGenerate the test cases in Gherkin syntax."
                     elif format_option == 'NON-BDD':
